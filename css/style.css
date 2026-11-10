@@ -537,6 +537,189 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(220, 38, 38, 0.45);
 }
+
+/* ===== THẺ ĐIỀN NHỊP TIM MẠCH CỔ TAY (THEO ĐÚNG MẪU ẢNH THIẾT KẾ) ===== */
+.pulse-input-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 1.15rem 1.35rem;
+  margin: 0.9rem 0;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+}
+[data-theme="dark"] .pulse-input-card {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35);
+}
+.pulse-input-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+.pulse-input-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.pulse-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: all 0.2s ease;
+}
+.pulse-status-badge.status-ok {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1.5px solid #a7f3d0;
+}
+.pulse-status-badge.status-warn {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1.5px solid #fde68a;
+}
+.pulse-status-badge.status-danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+}
+[data-theme="dark"] .pulse-status-badge.status-ok {
+  background: rgba(5, 150, 105, 0.2);
+  color: #34d399;
+  border-color: rgba(5, 150, 105, 0.45);
+}
+[data-theme="dark"] .pulse-status-badge.status-warn {
+  background: rgba(217, 119, 6, 0.2);
+  color: #fbbf24;
+  border-color: rgba(217, 119, 6, 0.45);
+}
+[data-theme="dark"] .pulse-status-badge.status-danger {
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+.pulse-input-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.pulse-num-box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+.pulse-num-input {
+  font-size: 2.35rem;
+  font-weight: 800;
+  font-family: inherit;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  width: 75px;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  border-bottom: 2px dashed transparent;
+  transition: border-color 0.2s;
+}
+.pulse-num-input:focus {
+  border-bottom-color: var(--primary);
+}
+.pulse-num-input::-webkit-inner-spin-button,
+.pulse-num-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pulse-num-input {
+  -moz-appearance: textfield;
+}
+.pulse-unit {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.pulse-stepper-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.pulse-btn {
+  width: 46px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 1.45rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.pulse-btn:hover {
+  background: var(--border);
+  transform: translateY(-1px);
+}
+.pulse-btn:active {
+  transform: scale(0.95);
+}
+[data-theme="dark"] .pulse-btn {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+[data-theme="dark"] .pulse-btn:hover {
+  background: #1e293b;
+}
+
+.btn-pulse-15s {
+  width: 100%;
+  background: #e0f2fe;
+  border: 1.5px solid #bae6fd;
+  color: #0284c7;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+}
+.btn-pulse-15s:hover {
+  background: #bae6fd;
+  border-color: #7dd3fc;
+  color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+.btn-pulse-15s:active {
+  transform: scale(0.98);
+}
+[data-theme="dark"] .btn-pulse-15s {
+  background: rgba(2, 132, 199, 0.18);
+  border-color: rgba(2, 132, 199, 0.45);
+  color: #38bdf8;
+}
+[data-theme="dark"] .btn-pulse-15s:hover {
+  background: rgba(2, 132, 199, 0.3);
+  border-color: #38bdf8;
+}
 .pulse-guide-note {
   font-size: .76rem;
   color: var(--text-sub);

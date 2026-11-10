@@ -368,14 +368,31 @@
               </div>
               <div class="pg-step">
                 <span class="pg-num">4</span>
-                <div class="pg-txt" data-i18n="pulseGuideStep4">Hoặc bấm nút bên dưới để vừa bắt mạch vừa chạm nhịp trực tiếp lên màn hình, AI sẽ tự tính BPM:</div>
+                <div class="pg-txt" data-i18n="pulseGuideStep4">Điền kết quả vào mục bên dưới hoặc bấm nút "Đo nhịp tim 15 giây" để AI tự động tính:</div>
               </div>
             </div>
-            <div class="pulse-guide-actions">
-              <button type="button" class="btn-pulse-tap-action" onclick="openTapModal()">
-                <span data-i18n="pulseGuideBtn">Mở công cụ Chạm nhịp tim (Tap-Tempo)</span>
+
+            <!-- THẺ ĐIỀN CHỈ SỐ NHỊP TIM MẠCH CỔ TAY (THEO ĐÚNG MẪU ẢNH THIẾT KẾ) -->
+            <div class="pulse-input-card">
+              <div class="pulse-input-header">
+                <div class="pulse-input-name" data-i18n="heartRateLabel">Nhịp tim</div>
+                <span class="pulse-status-badge status-ok" id="badgeEstHR">70 BPM (Bình thường)</span>
+              </div>
+              <div class="pulse-input-body">
+                <div class="pulse-num-box">
+                  <input type="number" id="inpEstHR" class="pulse-num-input" value="70" min="40" max="220" onchange="setEstHR(this.value)" oninput="setEstHR(this.value)" aria-label="Nhập nhịp tim">
+                  <span class="pulse-unit">BPM</span>
+                </div>
+                <div class="pulse-stepper-btns">
+                  <button type="button" class="pulse-btn" onclick="stepEstHR(-1)" aria-label="Giảm nhịp tim">−</button>
+                  <button type="button" class="pulse-btn" onclick="stepEstHR(1)" aria-label="Tăng nhịp tim">+</button>
+                </div>
+              </div>
+              <button type="button" class="btn-pulse-15s" onclick="openTapModal()">
+                <span data-i18n="btnMeasure15s">Đo nhịp tim 15 giây</span>
               </button>
             </div>
+
             <div class="pulse-guide-note" data-i18n="pulseGuideNormal">Chuẩn sinh lý bình thường lúc nghỉ ngơi: 60 – 99 BPM.</div>
           </div>
         </div>

@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btnSOS')?.addEventListener('click', openSOS);
   document.getElementById('btnVoice')?.addEventListener('click', readVoice);
+
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        try { window.speechSynthesis.getVoices(); } catch(e) {}
+      };
+    } catch(e) {}
+  }
 });
 
 /* ===== LOCAL STORAGE ===== */
@@ -105,6 +114,27 @@ function updatePatientSummary() {
 }
 
 /* ===== STEPPER & VITALS ===== */
+function stepEstHR(delta) {
+  let current = parseInt(S.est.manualPulse || S.hr || 70);
+  if (isNaN(current)) current = 70;
+  let next = Math.max(40, Math.min(220, current + delta));
+  S.est.manualPulse = next;
+  S.hr = next;
+  syncDisplays();
+  analyze();
+}
+
+function setEstHR(val) {
+  let n = parseInt(val);
+  if (!isNaN(n)) {
+    n = Math.max(30, Math.min(220, n));
+    S.est.manualPulse = n;
+    S.hr = n;
+    syncDisplays();
+    analyze();
+  }
+}
+
 function stepVal(type, delta) {
   if (type === 'temp') {
     S.temp = Math.round(Math.max(34, Math.min(43, S.temp + delta)) * 10) / 10;
@@ -191,6 +221,30 @@ function syncDisplays() {
       badgeHR.textContent = `${S.hr} BPM (${getTranslation('statSafe')})`;
       badgeHR.className = 'v-status-badge status-ok';
     }
+  }
+
+  // Đồng bộ mục Nhịp tim mạch cổ tay (chế độ ước lượng lâm sàng)
+  const estHR = S.est.manualPulse || S.hr || 70;
+  const inpEstHR = document.getElementById('inpEstHR');
+  if (inpEstHR && document.activeElement !== inpEstHR) {
+    inpEstHR.value = estHR;
+  }
+  const badgeEstHR = document.getElementById('badgeEstHR');
+  if (badgeEstHR) {
+    let statText = getTranslation('statSafe');
+    let cls = 'status-ok';
+    if (estHR >= 120) {
+      statText = currentLang === 'vi' ? 'Rất nhanh (Nguy hiểm)' : getTranslation('statHRFast');
+      cls = 'status-danger';
+    } else if (estHR >= 100) {
+      statText = getTranslation('statHRFast');
+      cls = 'status-warn';
+    } else if (estHR < 60) {
+      statText = getTranslation('statHRSlow');
+      cls = 'status-warn';
+    }
+    badgeEstHR.textContent = `${estHR} BPM (${statText})`;
+    badgeEstHR.className = `pulse-status-badge ${cls}`;
   }
 
   // 4. Huyết áp
@@ -343,6 +397,7 @@ const PulseMeter = {
 
       // Tự động lưu vào chỉ số sinh hiệu bệnh nhân và phân tích lại toàn bộ ứng dụng
       S.hr = finalBpm;
+      S.est.manualPulse = finalBpm;
       syncDisplays();
       analyze();
       try { HealthAudio?.playSafeChime?.(); } catch(e) {}
@@ -547,17 +602,18 @@ function updateSymUI() {
 
 /* ===== ANALYZE LOGIC ===== */
 function analyze() {
+  const estHR = S.est.manualPulse || S.hr || 70;
   const input = {
     temperature: S.estimated ? null : S.temp,
     spo2: S.estimated ? null : S.spo2,
-    heartRate: S.estimated ? null : S.hr,
+    heartRate: S.estimated ? estHR : S.hr,
     systolic: S.sys, diastolic: S.dia,
     symptoms: S.symptoms,
     durationDays: S.days,
     isEstimatedMode: S.estimated,
     estTemp: S.est.estTemp,
     estBreathing: S.est.estBreathing,
-    manualPulse: S.est.manualPulse
+    manualPulse: estHR
   };
 
   const r = HealthPulseEngine.evaluate(input, currentLang);
@@ -584,8 +640,9 @@ function analyze() {
   const spo2Stat = S.estimated ? getTranslation('statusEstimated') : S.spo2 < 93 ? getTranslation('statHypoxia') : getTranslation('statSafe');
   updateHomeMetric('mSpO2', 'mSpO2Val', 'mSpO2Stat', S.estimated ? (r.breakdown.spo2Est ? '~' + r.breakdown.spo2Est + '%' : '--') : S.spo2 + ' %', spo2Stat, S.spo2 < 93 ? 'danger' : S.spo2 <= 95 ? 'warn' : 'ok');
 
-  const hrStat = S.estimated ? getTranslation('statNotMeasured') : S.hr >= 110 ? getTranslation('statHRFast') : S.hr < 55 ? getTranslation('statHRSlow') : getTranslation('statSafe');
-  updateHomeMetric('mHR', 'mHRVal', 'mHRStat', S.estimated ? '--' : S.hr + ' BPM', hrStat, S.hr >= 110 ? 'warn' : 'ok');
+  const displayHR = S.estimated ? estHR : S.hr;
+  const hrStat = displayHR >= 110 ? getTranslation('statHRFast') : displayHR < 60 ? getTranslation('statHRSlow') : getTranslation('statSafe');
+  updateHomeMetric('mHR', 'mHRVal', 'mHRStat', `${displayHR} BPM`, hrStat, displayHR >= 110 ? 'warn' : 'ok');
 
   const bpStat = S.sys >= 140 ? getTranslation('statBPHigh') : S.sys < 90 ? getTranslation('statBPLow') : getTranslation('statSafe');
   updateHomeMetric('mBP', 'mBPVal', 'mBPStat', `${S.sys}/${S.dia}`, bpStat, S.sys >= 140 || S.sys < 90 ? 'warn' : 'ok');
@@ -741,8 +798,28 @@ function copySMS() {
 
 let currentVoiceAudio = null;
 let isVoiceSpeaking = false;
+let voiceWatchdog = null;
+
+function updateVoiceUI(speaking) {
+  const btn = document.getElementById('btnVoice');
+  const txt = document.getElementById('voiceBtnText');
+  const icon = document.getElementById('voiceIcon');
+  if (btn) btn.classList.toggle('speaking', speaking);
+  if (txt) txt.textContent = speaking ? getTranslation('btnVoiceStop') : getTranslation('btnVoice');
+  if (icon) {
+    if (speaking) {
+      icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+    } else {
+      icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+    }
+  }
+}
 
 function stopVoice() {
+  if (voiceWatchdog) {
+    clearInterval(voiceWatchdog);
+    voiceWatchdog = null;
+  }
   if (currentVoiceAudio) {
     try {
       currentVoiceAudio.pause();
@@ -754,14 +831,8 @@ function stopVoice() {
     try { window.speechSynthesis.cancel(); } catch(e) {}
   }
   isVoiceSpeaking = false;
-  const btn = document.getElementById('btnVoice');
-  const txt = document.getElementById('voiceBtnText');
-  const icon = document.getElementById('voiceIcon');
-  if (btn) btn.classList.remove('speaking');
-  if (txt) txt.textContent = getTranslation('btnVoice');
-  if (icon) {
-    icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
-  }
+  window.__hpVoiceUtterance = null;
+  updateVoiceUI(false);
 }
 
 function readVoice() {
@@ -770,17 +841,21 @@ function readVoice() {
     return;
   }
 
+  // Khởi tạo AudioContext (mở khóa quyền phát âm thanh trên Safari iOS & Chrome Mobile)
+  try { HealthAudio?.init?.(); } catch(e) {}
+
+  const estHR = S.est.manualPulse || S.hr || 70;
   const input = {
     temperature: S.estimated ? null : S.temp,
     spo2: S.estimated ? null : S.spo2,
-    heartRate: S.estimated ? null : S.hr,
+    heartRate: S.estimated ? estHR : S.hr,
     systolic: S.sys, diastolic: S.dia,
     symptoms: S.symptoms,
     durationDays: S.days,
     isEstimatedMode: S.estimated,
     estTemp: S.est.estTemp,
     estBreathing: S.est.estBreathing,
-    manualPulse: S.est.manualPulse
+    manualPulse: estHR
   };
   const r = HealthPulseEngine.evaluate(input, currentLang);
   S.result = r;
@@ -796,47 +871,54 @@ function readVoice() {
     text = `HealthPulse AI thông báo: Tình trạng sức khỏe ${r.levelName}. Điểm nguy cơ ${r.score} trên 100. ${r.alertMessage}. Lời khuyên y khoa: ${r.recommendation}`;
   }
 
-  const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
-  const btn = document.getElementById('btnVoice');
-  const txt = document.getElementById('voiceBtnText');
-  const icon = document.getElementById('voiceIcon');
-
   isVoiceSpeaking = true;
-  if (btn) btn.classList.add('speaking');
-  if (txt) txt.textContent = getTranslation('btnVoiceStop');
-  if (icon) {
-    icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+  updateVoiceUI(true);
+
+  // Kiểm tra môi trường: nếu đang chạy trên localhost có backend Python server.py
+  const isLocalBackend = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
+
+  if (!isLocalBackend) {
+    // Trên GitHub Pages / Web tĩnh: BẮT BUỘC phát Web Speech API ĐỒNG BỘ trong click handler
+    // (Nếu gọi bất đồng bộ qua fetch/audio.onerror, iOS và Android sẽ chặn quyền âm thanh vì hết user gesture)
+    speakWithWebSpeech(text);
+  } else {
+    const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
+    const ttsUrl = `/api/tts?lang=${currentLang}&voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
+    const audio = new Audio();
+    currentVoiceAudio = audio;
+    audio.src = ttsUrl;
+
+    audio.onended = () => { stopVoice(); };
+    audio.onerror = () => {
+      console.warn('API TTS không phản hồi, chuyển sang Web Speech API');
+      speakWithWebSpeech(text);
+    };
+    audio.play().catch(e => {
+      console.warn('Audio play bị chặn hoặc lỗi, dùng Web Speech API:', e);
+      speakWithWebSpeech(text);
+    });
   }
-
-  // Ưu tiên dùng giọng AI chất lượng cao từ server qua API
-  const ttsUrl = `/api/tts?lang=${currentLang}&voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
-  const audio = new Audio();
-  currentVoiceAudio = audio;
-  audio.src = ttsUrl;
-
-  audio.onended = () => {
-    stopVoice();
-  };
-
-  audio.onerror = () => {
-    console.warn('API TTS không phản hồi, chuyển sang Web Speech API fallback.');
-    fallbackSpeechSynthesis(text);
-  };
-
-  audio.play().catch(e => {
-    console.warn('Audio play bị chặn hoặc lỗi, dùng Web Speech API:', e);
-    fallbackSpeechSynthesis(text);
-  });
 }
 
-function fallbackSpeechSynthesis(text) {
+function speakWithWebSpeech(text) {
   if (!('speechSynthesis' in window)) {
     stopVoice();
-    alert('Trình duyệt không hỗ trợ phát âm thanh.');
+    alert('Trình duyệt của bạn chưa hỗ trợ tính năng đọc giọng nói (Web Speech API).');
     return;
   }
-  try { window.speechSynthesis.cancel(); } catch(e) {}
+
+  try {
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+  } catch(e) {}
+
   const utter = new SpeechSynthesisUtterance(text);
+  window.__hpVoiceUtterance = utter; // Lưu biến toàn cục tránh bộ thu gom rác Garbage Collector trên Chrome di động
+
   const voiceLangMap = { vi: 'vi-VN', en: 'en-US', ko: 'ko-KR', zh: 'zh-CN' };
   utter.lang = voiceLangMap[currentLang] || 'vi-VN';
   utter.rate = 0.95;
@@ -844,15 +926,52 @@ function fallbackSpeechSynthesis(text) {
 
   try {
     const voices = window.speechSynthesis.getVoices();
-    const matched = voices.find(v => v.lang.startsWith(currentLang) && (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google')))
-                 || voices.find(v => v.lang.startsWith(currentLang));
-    if (matched) utter.voice = matched;
+    if (voices && voices.length > 0) {
+      const targetPrefix = currentLang.toLowerCase();
+      const matched = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        return vl.startsWith(targetPrefix);
+      });
+      if (matched) utter.voice = matched;
+    }
   } catch(e) {}
 
-  utter.onend = () => stopVoice();
-  utter.onerror = () => stopVoice();
+  utter.onstart = () => {
+    isVoiceSpeaking = true;
+    updateVoiceUI(true);
+  };
 
-  window.speechSynthesis.speak(utter);
+  utter.onend = () => {
+    stopVoice();
+  };
+
+  utter.onerror = (e) => {
+    console.warn('SpeechSynthesis error:', e);
+    stopVoice();
+  };
+
+  try {
+    window.speechSynthesis.speak(utter);
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+
+    // Chrome mobile watchdog: tự động resume định kỳ nếu Chrome tạm dừng TTS
+    if (voiceWatchdog) clearInterval(voiceWatchdog);
+    voiceWatchdog = setInterval(() => {
+      if (!isVoiceSpeaking) {
+        clearInterval(voiceWatchdog);
+        voiceWatchdog = null;
+        return;
+      }
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 3000);
+  } catch(err) {
+    console.error('Không thể phát giọng nói:', err);
+    stopVoice();
+  }
 }
 
 /* ===== TOGGLES ===== */
