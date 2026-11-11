@@ -362,6 +362,58 @@ body {
 
 .vitals-smart-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1rem;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+/* Trạng thái vô hiệu hóa khi bật Chế độ Ước lượng */
+.vitals-smart-grid.is-disabled {
+  opacity: 0.42;
+  filter: grayscale(0.7);
+  pointer-events: none;
+  user-select: none;
+  cursor: not-allowed;
+}
+.vitals-smart-grid.is-disabled .v-btn,
+.vitals-smart-grid.is-disabled .btn-quick-tap {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.vitals-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-full);
+}
+[data-theme="dark"] .vitals-lock-badge {
+  background: rgba(217, 119, 6, 0.2);
+  color: #fbbf24;
+  border-color: rgba(217, 119, 6, 0.45);
+}
+.vitals-lock-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+  background: #fffbeb;
+  border: 1.5px dashed #fcd34d;
+  border-radius: var(--r-md);
+  color: #92400e;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  animation: fadeIn 0.25s ease;
+}
+[data-theme="dark"] .vitals-lock-banner {
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #fde68a;
 }
 .vital-smart-card {
   background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-md);

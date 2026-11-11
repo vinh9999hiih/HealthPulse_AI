@@ -73,6 +73,9 @@ const TRANSLATIONS = {
     // Vitals Section
     vitalsSecTitle: "Bảng chỉ số sinh hiệu (Vitals)",
     vitalsSecHint: "Chạm nút + / − hoặc nhập giá trị đo được",
+    vitalsSecHintLocked: "Đã vô hiệu hóa để dùng bảng ước lượng bên dưới",
+    vitalsLockedBadge: "🔒 Đang tạm khóa",
+    vitalsLockBannerMsg: "Bảng đo trực tiếp đang tạm khóa — Hệ thống đang sử dụng dữ liệu từ Chế độ Ước lượng lâm sàng bên dưới.",
     tempHint: "Bình thường: 36.5 – 37.4 °C",
     spo2Hint: "Dưới 93% → Cấp cứu ngay",
     hrHint: "Bình thường: 60 – 99 BPM",
@@ -276,6 +279,9 @@ const TRANSLATIONS = {
     // Vitals Section
     vitalsSecTitle: "Vital Signs Panel",
     vitalsSecHint: "Tap + / − or enter measured values",
+    vitalsSecHintLocked: "Disabled to use estimation section below",
+    vitalsLockedBadge: "🔒 Locked",
+    vitalsLockBannerMsg: "Direct vitals input is temporarily locked — The system is using data from Clinical Estimation Mode below.",
     tempHint: "Normal: 36.5 – 37.4 °C",
     spo2Hint: "Below 93% → Emergency alert",
     hrHint: "Normal: 60 – 99 BPM",
@@ -479,6 +485,9 @@ const TRANSLATIONS = {
     // Vitals Section
     vitalsSecTitle: "활력 징후 패널 (Vitals)",
     vitalsSecHint: "+ / − 버튼을 누르거나 측정값을 입력하세요",
+    vitalsSecHintLocked: "아래 추정 섹션을 사용하기 위해 비활성화됨",
+    vitalsLockedBadge: "🔒 잠김",
+    vitalsLockBannerMsg: "직접 측정 지표가 일시적으로 잠겼습니다 — 아래의 임상 추정 모드 데이터를 사용합니다.",
     tempHint: "정상 범위: 36.5 – 37.4 °C",
     spo2Hint: "93% 미만 시 즉시 응급 조치",
     hrHint: "정상 범위: 60 – 99 BPM",
@@ -682,6 +691,9 @@ const TRANSLATIONS = {
     // Vitals Section
     vitalsSecTitle: "生命体征监测面板 (Vitals)",
     vitalsSecHint: "点击 + / − 或直接输入仪器测量数值",
+    vitalsSecHintLocked: "已禁用，请使用下方估算项目",
+    vitalsLockedBadge: "🔒 已锁定",
+    vitalsLockBannerMsg: "直接测量指标已暂时锁定 — 系统正在使用下方的临床估算模式数据。",
     tempHint: "正常范围：36.5 – 37.4 °C",
     spo2Hint: "低于 93% 需立即紧急处置",
     hrHint: "正常范围：60 – 99 BPM",

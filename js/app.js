@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTap();
   initToggles();
   syncDisplays();
+  updateEstModeUI();
   analyze();
   initChart();
 
@@ -121,6 +122,7 @@ function stepEstHR(delta) {
   S.est.manualPulse = next;
   S.hr = next;
   syncDisplays();
+  updateEstModeUI();
   analyze();
 }
 
@@ -151,6 +153,7 @@ function stepVal(type, delta) {
     S.dia = Math.max(40, Math.min(140, S.dia + delta));
   }
   syncDisplays();
+  updateEstModeUI();
   analyze();
 }
 
@@ -158,6 +161,7 @@ function setDays(n) {
   S.days = n;
   updateDurationChips();
   syncDisplays();
+  updateEstModeUI();
   analyze();
 }
 
@@ -278,14 +282,38 @@ function syncDisplays() {
 }
 
 /* ===== ESTIMATION MODE ===== */
-function toggleEstMode() {
-  S.estimated = !S.estimated;
+function updateEstModeUI() {
   const sw = document.getElementById('switchEstUI');
   if (sw) sw.classList.toggle('on', S.estimated);
+
   const drawer = document.getElementById('secNoDevice');
   if (drawer) drawer.style.display = S.estimated ? 'block' : 'none';
-  const cardSpO2 = document.getElementById('cardSpO2');
-  if (cardSpO2) cardSpO2.style.opacity = S.estimated ? '0.5' : '1';
+
+  const grid = document.getElementById('vitalsSmartGrid');
+  const lockBadge = document.getElementById('vitalsLockBadge');
+  const lockBanner = document.getElementById('vitalsLockBanner');
+  const hint = document.getElementById('vitalsSecHint');
+
+  if (grid) {
+    grid.classList.toggle('is-disabled', S.estimated);
+    grid.querySelectorAll('button').forEach(btn => {
+      btn.disabled = S.estimated;
+    });
+  }
+
+  if (lockBadge) lockBadge.style.display = S.estimated ? 'inline-flex' : 'none';
+  if (lockBanner) lockBanner.style.display = S.estimated ? 'flex' : 'none';
+
+  if (hint) {
+    hint.textContent = S.estimated
+      ? (getTranslation('vitalsSecHintLocked') || 'Đã vô hiệu hóa để dùng bảng ước lượng bên dưới')
+      : getTranslation('vitalsSecHint');
+  }
+}
+
+function toggleEstMode() {
+  S.estimated = !S.estimated;
+  updateEstModeUI();
   analyze();
 }
 
@@ -835,6 +863,80 @@ function stopVoice() {
   updateVoiceUI(false);
 }
 
+function splitTextIntoTTSChunks(text, maxLength = 160) {
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+  const chunks = [];
+  let current = '';
+  for (let s of sentences) {
+    s = s.trim();
+    if (!s) continue;
+    if ((current + ' ' + s).trim().length <= maxLength) {
+      current = (current + ' ' + s).trim();
+    } else {
+      if (current) chunks.push(current);
+      if (s.length > maxLength) {
+        const words = s.split(' ');
+        let sub = '';
+        for (let w of words) {
+          if ((sub + ' ' + w).trim().length <= maxLength) {
+            sub = (sub + ' ' + w).trim();
+          } else {
+            if (sub) chunks.push(sub);
+            sub = w;
+          }
+        }
+        if (sub) chunks.push(sub);
+        current = '';
+      } else {
+        current = s;
+      }
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks.length > 0 ? chunks : [text];
+}
+
+function playGoogleTTS(text, lang) {
+  const chunks = splitTextIntoTTSChunks(text, 160);
+  let idx = 0;
+
+  const audio = currentVoiceAudio || new Audio();
+  currentVoiceAudio = audio;
+
+  function playNextChunk() {
+    if (!isVoiceSpeaking) return;
+    if (idx >= chunks.length) {
+      stopVoice();
+      return;
+    }
+
+    const chunk = chunks[idx++];
+    const langCode = lang === 'zh' ? 'zh-CN' : (lang || 'vi');
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
+
+    audio.src = url;
+
+    audio.onended = () => {
+      playNextChunk();
+    };
+
+    audio.onerror = (err) => {
+      console.warn('Google TTS không phản hồi, thử Web Speech API:', err);
+      speakWithWebSpeech(text);
+    };
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn('Audio play bị chặn hoặc lỗi mạng, thử Web Speech API:', err);
+        speakWithWebSpeech(text);
+      });
+    }
+  }
+
+  playNextChunk();
+}
+
 function readVoice() {
   if (isVoiceSpeaking) {
     stopVoice();
@@ -874,36 +976,50 @@ function readVoice() {
   isVoiceSpeaking = true;
   updateVoiceUI(true);
 
+  // Tạo sẵn đối tượng Audio ngay trong user gesture của sự kiện click
+  const audio = new Audio();
+  currentVoiceAudio = audio;
+
   // Kiểm tra môi trường: nếu đang chạy trên localhost có backend Python server.py
   const isLocalBackend = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
 
-  if (!isLocalBackend) {
-    // Trên GitHub Pages / Web tĩnh: BẮT BUỘC phát Web Speech API ĐỒNG BỘ trong click handler
-    // (Nếu gọi bất đồng bộ qua fetch/audio.onerror, iOS và Android sẽ chặn quyền âm thanh vì hết user gesture)
-    speakWithWebSpeech(text);
-  } else {
+  if (isLocalBackend) {
     const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
     const ttsUrl = `/api/tts?lang=${currentLang}&voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
-    const audio = new Audio();
-    currentVoiceAudio = audio;
     audio.src = ttsUrl;
 
     audio.onended = () => { stopVoice(); };
     audio.onerror = () => {
-      console.warn('API TTS không phản hồi, chuyển sang Web Speech API');
-      speakWithWebSpeech(text);
+      console.warn('API Edge TTS không phản hồi, chuyển sang Google TTS');
+      playGoogleTTS(text, currentLang);
     };
     audio.play().catch(e => {
-      console.warn('Audio play bị chặn hoặc lỗi, dùng Web Speech API:', e);
-      speakWithWebSpeech(text);
+      console.warn('Audio play Edge TTS bị lỗi, chuyển sang Google TTS:', e);
+      playGoogleTTS(text, currentLang);
     });
+  } else {
+    // Trên GitHub Pages / Web trực tuyến: Phát qua Google TTS đảm bảo 100% đúng chuẩn giọng tiếng Việt tự nhiên
+    playGoogleTTS(text, currentLang);
   }
 }
 
 function speakWithWebSpeech(text) {
   if (!('speechSynthesis' in window)) {
     stopVoice();
-    alert('Trình duyệt của bạn chưa hỗ trợ tính năng đọc giọng nói (Web Speech API).');
+    return;
+  }
+
+  const voices = window.speechSynthesis.getVoices() || [];
+  const targetPrefix = currentLang.toLowerCase();
+  const matched = voices.find(v => {
+    const vl = (v.lang || '').replace('_', '-').toLowerCase();
+    return vl.startsWith(targetPrefix);
+  });
+
+  // NẾU KHÔNG CÓ GIỌNG TIẾNG VIỆT TRÊN MÁY: Tuyệt đối KHÔNG dùng giọng tiếng Anh để đọc tiếng Việt!
+  if (!matched && currentLang === 'vi') {
+    console.warn('Thiết bị không có gói giọng tiếng Việt trong hệ thống, dừng đọc Web Speech.');
+    stopVoice();
     return;
   }
 
@@ -923,18 +1039,7 @@ function speakWithWebSpeech(text) {
   utter.lang = voiceLangMap[currentLang] || 'vi-VN';
   utter.rate = 0.95;
   utter.pitch = 1.0;
-
-  try {
-    const voices = window.speechSynthesis.getVoices();
-    if (voices && voices.length > 0) {
-      const targetPrefix = currentLang.toLowerCase();
-      const matched = voices.find(v => {
-        const vl = (v.lang || '').replace('_', '-').toLowerCase();
-        return vl.startsWith(targetPrefix);
-      });
-      if (matched) utter.voice = matched;
-    }
-  } catch(e) {}
+  if (matched) utter.voice = matched;
 
   utter.onstart = () => {
     isVoiceSpeaking = true;
@@ -956,7 +1061,6 @@ function speakWithWebSpeech(text) {
       window.speechSynthesis.resume();
     }
 
-    // Chrome mobile watchdog: tự động resume định kỳ nếu Chrome tạm dừng TTS
     if (voiceWatchdog) clearInterval(voiceWatchdog);
     voiceWatchdog = setInterval(() => {
       if (!isVoiceSpeaking) {
