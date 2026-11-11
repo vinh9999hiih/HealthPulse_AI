@@ -863,7 +863,45 @@ function stopVoice() {
   updateVoiceUI(false);
 }
 
-function splitTextIntoTTSChunks(text, maxLength = 160) {
+let systemVoices = [];
+function loadSystemVoices() {
+  if ('speechSynthesis' in window) {
+    systemVoices = window.speechSynthesis.getVoices() || [];
+  }
+}
+if ('speechSynthesis' in window) {
+  loadSystemVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    loadSystemVoices();
+  };
+}
+
+function findVoiceForLang(lang) {
+  let voices = window.speechSynthesis.getVoices() || [];
+  if (!voices.length && systemVoices.length) voices = systemVoices;
+  const target = (lang || 'vi').toLowerCase();
+  
+  // 1. Tìm chính xác theo mã ngôn ngữ (vi-VN, vi_VN, vi)
+  let found = voices.find(v => {
+    const l = (v.lang || '').replace('_', '-').toLowerCase();
+    return l === target || l.startsWith(target + '-') || l.startsWith(target);
+  });
+  if (found) return found;
+
+  // 2. Tìm theo tên giọng (Linh, Mai, HoaiMy, NamMinh, Google Tiếng Việt, Vietnamese, Vietnam)
+  if (target === 'vi') {
+    found = voices.find(v => {
+      const n = (v.name || '').toLowerCase();
+      const l = (v.lang || '').toLowerCase();
+      return n.includes('viet') || n.includes('tiếng việt') || l.includes('vie') || n.includes('linh') || n.includes('mai');
+    });
+    if (found) return found;
+  }
+
+  return voices.find(v => (v.lang || '').toLowerCase().startsWith(target));
+}
+
+function splitTextIntoTTSChunks(text, maxLength = 120) {
   const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
   const chunks = [];
   let current = '';
@@ -897,11 +935,12 @@ function splitTextIntoTTSChunks(text, maxLength = 160) {
 }
 
 function playGoogleTTS(text, lang) {
-  const chunks = splitTextIntoTTSChunks(text, 160);
+  const chunks = splitTextIntoTTSChunks(text, 120);
   let idx = 0;
 
   const audio = currentVoiceAudio || new Audio();
   currentVoiceAudio = audio;
+  audio.referrerPolicy = 'no-referrer';
 
   function playNextChunk() {
     if (!isVoiceSpeaking) return;
@@ -921,14 +960,14 @@ function playGoogleTTS(text, lang) {
     };
 
     audio.onerror = (err) => {
-      console.warn('Google TTS không phản hồi, thử Web Speech API:', err);
+      console.warn('Google TTS không phản hồi, chuyển sang Web Speech:', err);
       speakWithWebSpeech(text);
     };
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio play bị chặn hoặc lỗi mạng, thử Web Speech API:', err);
+        console.warn('Audio play bị chặn hoặc lỗi mạng, chuyển sang Web Speech:', err);
         speakWithWebSpeech(text);
       });
     }
@@ -976,8 +1015,9 @@ function readVoice() {
   isVoiceSpeaking = true;
   updateVoiceUI(true);
 
-  // Tạo sẵn đối tượng Audio ngay trong user gesture của sự kiện click
+  // Tạo sẵn đối tượng Audio ngay trong user gesture của sự kiện click với no-referrer
   const audio = new Audio();
+  audio.referrerPolicy = 'no-referrer';
   currentVoiceAudio = audio;
 
   // Kiểm tra môi trường: nếu đang chạy trên localhost có backend Python server.py
@@ -1006,20 +1046,7 @@ function readVoice() {
 function speakWithWebSpeech(text) {
   if (!('speechSynthesis' in window)) {
     stopVoice();
-    return;
-  }
-
-  const voices = window.speechSynthesis.getVoices() || [];
-  const targetPrefix = currentLang.toLowerCase();
-  const matched = voices.find(v => {
-    const vl = (v.lang || '').replace('_', '-').toLowerCase();
-    return vl.startsWith(targetPrefix);
-  });
-
-  // NẾU KHÔNG CÓ GIỌNG TIẾNG VIỆT TRÊN MÁY: Tuyệt đối KHÔNG dùng giọng tiếng Anh để đọc tiếng Việt!
-  if (!matched && currentLang === 'vi') {
-    console.warn('Thiết bị không có gói giọng tiếng Việt trong hệ thống, dừng đọc Web Speech.');
-    stopVoice();
+    alert('Trình duyệt của bạn chưa hỗ trợ tính năng đọc giọng nói.');
     return;
   }
 
@@ -1039,7 +1066,12 @@ function speakWithWebSpeech(text) {
   utter.lang = voiceLangMap[currentLang] || 'vi-VN';
   utter.rate = 0.95;
   utter.pitch = 1.0;
-  if (matched) utter.voice = matched;
+
+  const matched = findVoiceForLang(currentLang);
+  if (matched) {
+    utter.voice = matched;
+    utter.lang = matched.lang || utter.lang;
+  }
 
   utter.onstart = () => {
     isVoiceSpeaking = true;
