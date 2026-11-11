@@ -520,92 +520,94 @@
   <!-- ===== MODAL ĐO NHỊP TIM 15 GIÂY (BẮT MẠCH CỔ TAY) ===== -->
   <div id="modalTap" class="modal-bg" style="display:none;">
     <div class="modal-box tap-modal-box">
-      <button class="modal-close" onclick="closeTapModal()">&times;</button>
+      <button class="modal-close" onclick="PulseMeter.closeModal()">&times;</button>
       
-      <!-- Tiêu đề & Trạng thái đếm -->
+      <!-- Tiêu đề & Hướng dẫn -->
       <div class="tap-modal-header">
         <div class="tap-header-badge" id="tapBadgeContainer">
           <span class="tap-badge-dot"></span>
-          <span id="tapStatusBadge" data-i18n="tapStatusReady">Chạm nút đỏ để bắt đầu đếm 15 giây</span>
+          <span id="tapStatusBadge" data-i18n="tapStatusReady">Sẵn sàng đếm ngược 15 giây</span>
         </div>
-        <h3 class="tap-title" data-i18n="tapModalTitle">Đo nhịp tim 15 giây (Bắt mạch cổ tay)</h3>
-        <p class="tap-desc" data-i18n="tapModalDesc">Đặt ngón tay lên mạch đập cổ tay. Chạm nút đỏ theo từng nhịp đập, đồng hồ sẽ đếm ngược 15s và tự động tính kết quả.</p>
+        <h3 class="tap-title" data-i18n="tapModalTitle">Đồng hồ đếm ngược 15 giây</h3>
+        <p class="tap-desc" data-i18n="tapModalDesc">Bấm Bắt đầu, đặt 2 ngón tay lên mạch đập cổ tay và tập trung đếm số nhịp đập trong đầu cho đến khi hết 15 giây.</p>
       </div>
 
-      <!-- Vùng hiển thị Countdown tròn & Nút Nhịp tim -->
+      <!-- Vùng hiển thị Countdown tròn lớn -->
       <div class="tap-arena">
         <div class="tap-ring-container">
-          <!-- Circular SVG Countdown Progress Ring -->
-          <svg class="tap-svg-ring" width="168" height="168" viewBox="0 0 168 168">
-            <circle class="tap-ring-bg" cx="84" cy="84" r="76" />
-            <circle id="tapRingProgress" class="tap-ring-progress" cx="84" cy="84" r="76" />
+          <svg class="tap-svg-ring" width="180" height="180" viewBox="0 0 180 180">
+            <circle class="tap-ring-bg" cx="90" cy="90" r="80" />
+            <circle id="tapRingProgress" class="tap-ring-progress" cx="90" cy="90" r="80" />
           </svg>
 
-          <!-- Nút tim đỏ trung tâm -->
-          <button id="btnTap" class="tap-heart-btn" aria-label="Chạm theo nhịp tim">
-            <svg class="tap-heart-icon" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-            </svg>
-            <span class="tap-btn-label" id="tapBtnCounter">0 nhịp</span>
+          <!-- Hiển thị đồng hồ số lớn ở trung tâm -->
+          <div class="tap-clock-center">
+            <div class="tap-clock-digits-wrap">
+              <span id="tapClockBig" class="tap-clock-digits">15.0</span>
+              <span class="tap-clock-unit">s</span>
+            </div>
+            <span id="tapClockSub" class="tap-clock-sub">15 GIÂY</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thanh tiến trình mini -->
+      <div class="tap-progress-track">
+        <div id="tapProgressBar" class="tap-progress-fill" style="width:0%;"></div>
+      </div>
+
+      <!-- Nút điều khiển đếm ngược -->
+      <div class="tap-ctrl-container">
+        <!-- Nút Bắt đầu khi ở trạng thái idle -->
+        <button type="button" id="btnTimerStart" class="btn-timer-main" onclick="PulseMeter.start()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span data-i18n="tapBtnStart">Bắt đầu đếm ngược (15s)</span>
+        </button>
+
+        <!-- Nút khi đang chạy: Tạm dừng / Hủy -->
+        <div id="timerRunningControls" class="timer-running-row" style="display:none;">
+          <button type="button" id="btnTimerPause" class="btn-timer-action" onclick="PulseMeter.togglePause()">
+            <span id="btnPauseText">⏸️ Tạm dừng</span>
+          </button>
+          <button type="button" class="btn-timer-action action-reset" onclick="PulseMeter.reset()">
+            🔄 Đặt lại
           </button>
         </div>
       </div>
 
-      <!-- Đồng hồ đếm ngược số to & Thanh tiến trình -->
-      <div class="tap-countdown-bar">
-        <div class="tap-countdown-main">
-          <span class="tap-clock-icon">⏱️</span>
-          <span id="tapClockBig" class="tap-clock-big">15.0s</span>
-        </div>
-        <div class="tap-progress-track">
-          <div id="tapProgressBar" class="tap-progress-fill" style="width:0%;"></div>
-        </div>
-      </div>
-
-      <!-- Thẻ thông số tức thời (3 ô) -->
-      <div class="tap-metrics-grid">
-        <div class="tap-metric-col">
-          <div class="tap-m-label" data-i18n="tapTimeLabel">Thời gian</div>
-          <div class="tap-m-val" id="tapMetricTime">15s</div>
-        </div>
-        <div class="tap-metric-col">
-          <div class="tap-m-label" data-i18n="tapBeatsLabel">Số nhịp</div>
-          <div class="tap-m-val highlight" id="tapMetricBeats">0</div>
-        </div>
-        <div class="tap-metric-col">
-          <div class="tap-m-label" data-i18n="tapEstLabel">Ước tính</div>
-          <div class="tap-m-val" id="tapMetricBpm">-- BPM</div>
-        </div>
-      </div>
-
-      <!-- Khung thông báo kết quả khi hoàn thành 15 giây (Ẩn mặc định) -->
+      <!-- Khung nhập kết quả khi đếm xong 15 giây -->
       <div id="tapResultCard" class="tap-result-card" style="display:none;">
         <div class="tap-res-badge">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-          <span data-i18n="tapStatusDone">Đo hoàn tất! Kết quả đã tự động lưu.</span>
+          <span data-i18n="tapStatusDone">Đã hết 15 giây! Nhập số nhịp bạn đếm được:</span>
         </div>
-        <div class="tap-res-score">
-          <span id="tapFinalBpm" class="tap-bpm-num">76</span>
-          <span class="tap-bpm-unit" data-i18n="tapBpmUnit">BPM</span>
+
+        <div class="tap-calc-box">
+          <div class="tap-calc-input-wrap">
+            <span class="tap-input-label" data-i18n="tapBeatsLabel">Số nhịp đếm trong 15s:</span>
+            <div class="tap-stepper-row">
+              <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(-1)">−</button>
+              <input type="number" id="inpCountedBeats" class="inp-counted-beats" value="18" min="5" max="60" oninput="PulseMeter.onBeatsChange(this.value)">
+              <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(1)">+</button>
+            </div>
+          </div>
+          <div class="tap-formula-tag">
+            <span id="tapFormulaDisplay">18 nhịp × 4 = 72 BPM</span>
+          </div>
         </div>
-        <p id="tapFormulaDisplay" class="tap-res-formula">19 nhịp trong 15s × 4 = 76 BPM</p>
-        <div class="tap-auto-saved-tag">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span data-i18n="tapAutoSavedNotice">✓ Đã tự động lưu vào chỉ số nhịp tim của bạn</span>
-        </div>
+
+        <button type="button" class="btn-apply-pulse" onclick="PulseMeter.applyAndClose()">
+          ✓ <span data-i18n="tapBtnApply">Lưu kết quả & Đóng</span>
+        </button>
       </div>
 
-      <!-- Nút hành động bên dưới -->
+      <!-- Nút phụ bên dưới (khi hoàn thành có thể bấm Đếm lại hoặc Đóng) -->
       <div class="tap-actions-row">
-        <button type="button" id="btnTapReset" class="btn-tap-secondary" onclick="PulseMeter.reset()" style="display:none;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          <span data-i18n="tapBtnReset">Đặt lại</span>
-        </button>
         <button type="button" id="btnTapRetest" class="btn-tap-secondary" onclick="PulseMeter.startNew()" style="display:none;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          <span data-i18n="tapBtnRetest">Đo lại (15s)</span>
+          <span data-i18n="tapBtnRetest">Đếm lại (15s)</span>
         </button>
-        <button type="button" id="btnTapClose" class="btn-tap-primary" onclick="closeTapModal()" data-i18n="tapBtnClose">Áp dụng & Đóng</button>
+        <button type="button" id="btnTapClose" class="btn-tap-secondary" onclick="PulseMeter.closeModal()" data-i18n="tapBtnClose">Đóng</button>
       </div>
     </div>
   </div>

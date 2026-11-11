@@ -1084,18 +1084,18 @@ body {
   max-width: 340px;
 }
 
-/* Arena & Circular Ring */
+/* Arena & Circular Countdown Ring */
 .tap-arena {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 1.25rem 0 1rem;
+  margin: 1.25rem 0 0.85rem;
 }
 
 .tap-ring-container {
   position: relative;
-  width: 168px;
-  height: 168px;
+  width: 180px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1112,150 +1112,163 @@ body {
 .tap-ring-bg {
   fill: none;
   stroke: var(--surface-soft);
-  stroke-width: 6;
+  stroke-width: 8;
 }
 
 .tap-ring-progress {
   fill: none;
-  stroke: #ef4444;
-  stroke-width: 6;
+  stroke: var(--secondary);
+  stroke-width: 8;
   stroke-linecap: round;
-  stroke-dasharray: 477.52;
+  stroke-dasharray: 502.65;
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 0.08s linear, stroke 0.3s ease;
-  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.55));
+  filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.45));
 }
 
-.tap-heart-btn {
-  position: relative;
-  width: 104px;
-  height: 104px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #f87171, #ef4444 60%, #b91c1c 100%);
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.45);
+.tap-clock-center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  user-select: none;
-  touch-action: manipulation;
-  transition: transform 0.08s ease, box-shadow 0.15s ease;
-  z-index: 2;
+  pointer-events: none;
 }
 
-.tap-heart-btn:active {
-  transform: scale(0.90);
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.7);
+.tap-clock-digits-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
 }
 
-.tap-heart-btn.beating {
-  animation: tapHeartBeat 0.22s ease-out;
-}
-
-@keyframes tapHeartBeat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.12); }
-  100% { transform: scale(1); }
-}
-
-.tap-heart-icon {
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.tap-btn-label {
-  font-size: 0.72rem;
-  font-weight: 800;
+.tap-clock-digits {
+  font-size: 3.2rem;
+  font-weight: 900;
   font-family: var(--mono);
-  margin-top: 2px;
-  color: #ffffff;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
-/* Countdown bar */
-.tap-countdown-bar {
-  background: var(--surface-soft);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-sm);
-  padding: 0.65rem 0.85rem;
-  margin-bottom: 1rem;
+.tap-clock-unit {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-sub);
 }
 
-.tap-countdown-main {
+.tap-clock-sub {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--secondary);
+  background: rgba(2, 132, 199, 0.1);
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tap-clock-sub.pulse-anim {
+  animation: pulseSub 1s infinite alternate;
+}
+
+@keyframes pulseSub {
+  from { opacity: 0.7; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+.tap-clock-sub.done {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+/* Control buttons */
+.tap-ctrl-container {
+  margin: 1.15rem 0 0.85rem;
+}
+
+.btn-timer-main {
+  width: 100%;
+  background: linear-gradient(135deg, var(--secondary), #0284c7);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0.85rem 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  gap: 0.55rem;
+  transition: all 0.2s ease;
 }
 
-.tap-clock-icon {
-  font-size: 1.1rem;
+.btn-timer-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
 }
 
-.tap-clock-big {
-  font-size: 1.5rem;
-  font-weight: 900;
-  font-family: var(--mono);
-  color: var(--secondary);
-  letter-spacing: -0.02em;
+.btn-timer-main:active {
+  transform: scale(0.98);
 }
 
+.timer-running-row {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.btn-timer-action {
+  flex: 1;
+  background: var(--surface-soft);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-timer-action:hover {
+  background: var(--border);
+}
+
+.btn-timer-action.action-reset {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.25);
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.btn-timer-action.action-reset:hover {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+/* Progress Bar */
 .tap-progress-track {
   width: 100%;
   height: 6px;
-  background: var(--border-color);
+  background: var(--border);
   border-radius: 999px;
   overflow: hidden;
+  margin: 0.5rem 0 0.5rem;
 }
 
 .tap-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--secondary), #ef4444);
+  background: linear-gradient(90deg, var(--secondary), #10b981);
   border-radius: 999px;
   transition: width 0.08s linear;
 }
 
-/* Metrics grid */
-.tap-metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1.1rem;
-}
-
-.tap-metric-col {
-  background: var(--surface-soft);
-  border: 1px solid var(--border-color);
-  border-radius: var(--r-sm);
-  padding: 0.55rem 0.4rem;
-}
-
-.tap-m-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.2rem;
-}
-
-.tap-m-val {
-  font-size: 0.95rem;
-  font-weight: 800;
-  font-family: var(--mono);
-  color: var(--text);
-}
-
-.tap-m-val.highlight {
-  color: #ef4444;
-}
-
-/* Result Card */
+/* Calculation & Result card */
 .tap-result-card {
   background: rgba(16, 185, 129, 0.08);
   border: 1.5px solid rgba(16, 185, 129, 0.35);
@@ -1275,9 +1288,108 @@ body {
   align-items: center;
   gap: 0.4rem;
   color: #10b981;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 800;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.tap-calc-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.75rem 0.85rem;
+  margin: 0.65rem 0 0.85rem;
+}
+
+.tap-calc-input-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tap-input-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tap-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tap-calc-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.tap-calc-btn:hover {
+  background: var(--border);
+}
+
+.inp-counted-beats {
+  width: 58px;
+  height: 34px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+
+.inp-counted-beats:focus {
+  border-color: var(--primary);
+}
+
+.tap-formula-tag {
+  background: var(--surface-soft);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary-hover);
+  text-align: center;
+  border: 1px dashed var(--primary);
+}
+
+.btn-apply-pulse {
+  width: 100%;
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.btn-apply-pulse:hover {
+  background: #047857;
+  transform: translateY(-1px);
 }
 
 .tap-res-score {

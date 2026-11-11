@@ -326,21 +326,31 @@ function pickEst(btn) {
   analyze();
 }
 
-/* ===== 15-SECOND PULSE METER CONTROLLER (TAP-TEMPO) ===== */
+/* ===== 15-SECOND COUNTDOWN PULSE METER CONTROLLER ===== */
 const PulseMeter = {
-  duration: 15,          // 15 seconds medical standard
+  duration: 15,          // 15 giây chuẩn lâm sàng
   secondsLeft: 15,
-  tapCount: 0,
-  tapTimes: [],
-  state: 'idle',         // 'idle' | 'running' | 'done'
+  countedBeats: 18,      // Mặc định 18 nhịp (18 × 4 = 72 BPM)
+  state: 'idle',         // 'idle' | 'running' | 'paused' | 'done'
   intervalId: null,
-  startTime: null,
-  CIRCUMFERENCE: 477.52, // 2 * PI * 76
+  endTime: null,
+  pausedRemainingMs: 15000,
+  CIRCUMFERENCE: 502.65, // 2 * PI * 80
 
   openModal() {
-    this.reset();
+    if (this.state === 'done') {
+      this.reset();
+    }
+    // Gán giá trị nhịp mặc định từ nhịp tim hiện tại nếu có
+    const currentBpm = S.est?.manualPulse || S.hr || 72;
+    this.countedBeats = Math.max(5, Math.min(60, Math.round(currentBpm / 4)));
+    const inp = document.getElementById('inpCountedBeats');
+    if (inp) inp.value = this.countedBeats;
+    this.updateFormulaDisplay();
+
     const m = document.getElementById('modalTap');
     if (m) m.style.display = 'flex';
+    this.renderUI();
   },
 
   closeModal() {
@@ -358,27 +368,43 @@ const PulseMeter = {
     this.stopTimer();
     this.state = 'idle';
     this.secondsLeft = this.duration;
-    this.tapCount = 0;
-    this.tapTimes = [];
+    this.pausedRemainingMs = this.duration * 1000;
     this.renderUI();
+    this.updateCountdownDisplay();
   },
 
   start() {
     if (this.state === 'running') return;
+    try { HealthAudio?.init?.(); } catch(e) {}
+
+    const remainingMs = this.state === 'paused' ? this.pausedRemainingMs : this.duration * 1000;
+    this.endTime = performance.now() + remainingMs;
     this.state = 'running';
-    this.startTime = performance.now();
-    this.secondsLeft = this.duration;
     this.renderUI();
 
+    this.stopTimer();
     this.intervalId = setInterval(() => {
-      const elapsed = (performance.now() - this.startTime) / 1000;
-      this.secondsLeft = Math.max(0, this.duration - elapsed);
+      const msLeft = this.endTime - performance.now();
+      this.secondsLeft = Math.max(0, msLeft / 1000);
       this.updateCountdownDisplay();
 
       if (this.secondsLeft <= 0) {
         this.finish();
       }
-    }, 50);
+    }, 40);
+  },
+
+  togglePause() {
+    if (this.state === 'running') {
+      this.stopTimer();
+      this.pausedRemainingMs = Math.max(0, this.endTime - performance.now());
+      this.secondsLeft = this.pausedRemainingMs / 1000;
+      this.state = 'paused';
+      this.renderUI();
+      this.updateCountdownDisplay();
+    } else if (this.state === 'paused') {
+      this.start();
+    }
   },
 
   stopTimer() {
@@ -388,166 +414,133 @@ const PulseMeter = {
     }
   },
 
-  onTap() {
-    // Nếu chưa bấm bắt đầu, chạm nút đỏ sẽ tự động kích hoạt đếm ngược 15s ngay lập tức!
-    if (this.state === 'idle') {
-      this.start();
-    }
-
-    if (this.state === 'running') {
-      this.tapCount++;
-      const now = performance.now();
-      this.tapTimes.push(now);
-
-      // Phát âm thanh tiếng tim đập & hiệu ứng rung nút
-      try { HealthAudio?.playHeartbeatThud?.(); } catch(e) {}
-      const btn = document.getElementById('btnTap');
-      if (btn) {
-        btn.classList.remove('beating');
-        void btn.offsetWidth; // kích hoạt animation lại
-        btn.classList.add('beating');
-      }
-
-      this.updateMetrics();
-    }
-  },
-
   finish() {
     this.stopTimer();
     this.state = 'done';
     this.secondsLeft = 0;
+    this.updateCountdownDisplay();
 
-    // Chuẩn y khoa: Đếm số nhịp trong 15s rồi nhân với 4 để ra BPM
-    let finalBpm = 0;
-    if (this.tapCount > 0) {
-      finalBpm = Math.round(this.tapCount * 4);
-      finalBpm = Math.max(40, Math.min(220, finalBpm));
+    try { HealthAudio?.playSafeChime?.(); } catch(e) {}
 
-      // Tự động lưu vào chỉ số sinh hiệu bệnh nhân và phân tích lại toàn bộ ứng dụng
-      S.hr = finalBpm;
-      S.est.manualPulse = finalBpm;
-      syncDisplays();
-      analyze();
-      try { HealthAudio?.playSafeChime?.(); } catch(e) {}
+    this.updateFormulaDisplay();
+    this.renderUI();
+  },
+
+  stepBeats(delta) {
+    let val = parseInt(this.countedBeats);
+    if (isNaN(val)) val = 18;
+    this.countedBeats = Math.max(5, Math.min(60, val + delta));
+    const inp = document.getElementById('inpCountedBeats');
+    if (inp) inp.value = this.countedBeats;
+    this.updateFormulaDisplay();
+  },
+
+  onBeatsChange(val) {
+    let parsed = parseInt(val);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= 90) {
+      this.countedBeats = parsed;
     }
+    this.updateFormulaDisplay();
+  },
 
-    this.renderUI(finalBpm);
+  updateFormulaDisplay() {
+    const el = document.getElementById('tapFormulaDisplay');
+    const beats = parseInt(this.countedBeats) || 0;
+    const bpm = Math.max(20, Math.min(240, beats * 4));
+    const unit = getTranslation('tapBeatsUnit') || 'nhịp';
+    if (el) {
+      el.textContent = `${beats} ${unit} × 4 = ${bpm} BPM`;
+    }
+  },
+
+  applyAndClose() {
+    const beats = parseInt(this.countedBeats) || 18;
+    const finalBpm = Math.max(30, Math.min(240, Math.round(beats * 4)));
+
+    // Lưu vào hệ thống chỉ số sinh hiệu và phân tích
+    S.hr = finalBpm;
+    S.est.manualPulse = finalBpm;
+    syncDisplays();
+    updateEstModeUI();
+    analyze();
+
+    try { HealthAudio?.playBeepSuccess?.(); } catch(e) {}
+    this.closeModal();
   },
 
   updateCountdownDisplay() {
     const clock = document.getElementById('tapClockBig');
     const ring = document.getElementById('tapRingProgress');
     const bar = document.getElementById('tapProgressBar');
-    const timeMetric = document.getElementById('tapMetricTime');
 
-    const progressFraction = (this.duration - this.secondsLeft) / this.duration; // 0 -> 1
+    const progressFraction = Math.max(0, Math.min(1, (this.duration - this.secondsLeft) / this.duration)); // 0 -> 1
     const offset = progressFraction * this.CIRCUMFERENCE;
 
-    if (clock) clock.textContent = `${this.secondsLeft.toFixed(1)}s`;
-    if (timeMetric) timeMetric.textContent = `${Math.ceil(this.secondsLeft)}s`;
-    if (ring) ring.style.strokeDashoffset = offset;
+    if (clock) clock.textContent = this.secondsLeft.toFixed(1);
+    if (ring) {
+      ring.style.strokeDashoffset = offset;
+      ring.style.stroke = this.state === 'done' ? '#10b981' : 'var(--secondary)';
+    }
     if (bar) bar.style.width = `${(progressFraction * 100).toFixed(1)}%`;
   },
 
-  updateMetrics() {
-    const counterLabel = document.getElementById('tapBtnCounter');
-    const metricBeats = document.getElementById('tapMetricBeats');
-    const metricBpm = document.getElementById('tapMetricBpm');
-
-    const unitBeats = getTranslation('tapBeatsUnit') || 'nhịp';
-    if (counterLabel) counterLabel.textContent = `${this.tapCount} ${unitBeats}`;
-    if (metricBeats) metricBeats.textContent = `${this.tapCount}`;
-
-    // Ước tính BPM tức thời khi người dùng đang bấm
-    if (this.startTime && this.tapCount >= 2) {
-      const elapsed = Math.max(0.5, (performance.now() - this.startTime) / 1000);
-      const estBpm = Math.min(220, Math.max(40, Math.round((this.tapCount / elapsed) * 60)));
-      if (metricBpm) metricBpm.textContent = `${estBpm} BPM`;
-    }
-  },
-
-  renderUI(finalBpm = 0) {
+  renderUI() {
     const badge = document.getElementById('tapBadgeContainer');
     const badgeText = document.getElementById('tapStatusBadge');
-    const clock = document.getElementById('tapClockBig');
-    const ring = document.getElementById('tapRingProgress');
-    const bar = document.getElementById('tapProgressBar');
-    const timeMetric = document.getElementById('tapMetricTime');
-    const metricBeats = document.getElementById('tapMetricBeats');
-    const metricBpm = document.getElementById('tapMetricBpm');
-    const counterLabel = document.getElementById('tapBtnCounter');
+    const clockSub = document.getElementById('tapClockSub');
+    const btnStart = document.getElementById('btnTimerStart');
+    const runningControls = document.getElementById('timerRunningControls');
+    const btnPauseText = document.getElementById('btnPauseText');
     const resultCard = document.getElementById('tapResultCard');
-    const finalBpmEl = document.getElementById('tapFinalBpm');
-    const formulaDisplay = document.getElementById('tapFormulaDisplay');
-    const btnReset = document.getElementById('btnTapReset');
     const btnRetest = document.getElementById('btnTapRetest');
-    const btnHeart = document.getElementById('btnTap');
-
-    const unitBeats = getTranslation('tapBeatsUnit') || 'nhịp';
 
     if (this.state === 'idle') {
       if (badge) badge.className = 'tap-header-badge';
-      if (badgeText) badgeText.textContent = getTranslation('tapStatusReady');
-      if (clock) clock.textContent = '15.0s';
-      if (timeMetric) timeMetric.textContent = '15s';
-      if (metricBeats) metricBeats.textContent = '0';
-      if (metricBpm) metricBpm.textContent = '-- BPM';
-      if (counterLabel) counterLabel.textContent = `0 ${unitBeats}`;
-      if (ring) {
-        ring.style.strokeDashoffset = '0';
-        ring.style.stroke = '#ef4444';
+      if (badgeText) badgeText.textContent = getTranslation('tapStatusReady') || 'Sẵn sàng đếm ngược 15 giây';
+      if (clockSub) {
+        clockSub.textContent = '15 GIÂY';
+        clockSub.className = 'tap-clock-sub';
       }
-      if (bar) bar.style.width = '0%';
+      if (btnStart) btnStart.style.display = 'flex';
+      if (runningControls) runningControls.style.display = 'none';
       if (resultCard) resultCard.style.display = 'none';
-      if (btnReset) btnReset.style.display = 'none';
       if (btnRetest) btnRetest.style.display = 'none';
-      if (btnHeart) {
-        btnHeart.disabled = false;
-        btnHeart.style.opacity = '1';
-        btnHeart.style.cursor = 'pointer';
-      }
+      this.updateCountdownDisplay();
     } else if (this.state === 'running') {
       if (badge) badge.className = 'tap-header-badge measuring';
-      if (badgeText) badgeText.textContent = getTranslation('tapStatusRunning');
-      if (resultCard) resultCard.style.display = 'none';
-      if (btnReset) btnReset.style.display = 'inline-flex';
-      if (btnRetest) btnRetest.style.display = 'none';
-      if (btnHeart) {
-        btnHeart.disabled = false;
-        btnHeart.style.opacity = '1';
-        btnHeart.style.cursor = 'pointer';
+      if (badgeText) badgeText.textContent = getTranslation('tapStatusRunning') || 'Đang đếm ngược 15 giây… Hãy đếm số nhịp đập trong đầu!';
+      if (clockSub) {
+        clockSub.textContent = 'ĐANG ĐẾM…';
+        clockSub.className = 'tap-clock-sub pulse-anim';
       }
-      this.updateCountdownDisplay();
-      this.updateMetrics();
+      if (btnStart) btnStart.style.display = 'none';
+      if (runningControls) runningControls.style.display = 'flex';
+      if (btnPauseText) btnPauseText.textContent = getTranslation('tapBtnPause') || '⏸️ Tạm dừng';
+      if (resultCard) resultCard.style.display = 'none';
+      if (btnRetest) btnRetest.style.display = 'none';
+    } else if (this.state === 'paused') {
+      if (badge) badge.className = 'tap-header-badge';
+      if (badgeText) badgeText.textContent = getTranslation('tapStatusPaused') || 'Đang tạm dừng đếm ngược';
+      if (clockSub) {
+        clockSub.textContent = 'TẠM DỪNG';
+        clockSub.className = 'tap-clock-sub';
+      }
+      if (btnStart) btnStart.style.display = 'none';
+      if (runningControls) runningControls.style.display = 'flex';
+      if (btnPauseText) btnPauseText.textContent = getTranslation('tapBtnResume') || '▶️ Tiếp tục';
+      if (resultCard) resultCard.style.display = 'none';
+      if (btnRetest) btnRetest.style.display = 'none';
     } else if (this.state === 'done') {
       if (badge) badge.className = 'tap-header-badge done';
-      if (badgeText) badgeText.textContent = getTranslation('tapStatusDone');
-      if (clock) clock.textContent = '0.0s';
-      if (timeMetric) timeMetric.textContent = '0s';
-      if (ring) {
-        ring.style.strokeDashoffset = `${this.CIRCUMFERENCE}`;
-        ring.style.stroke = '#10b981';
+      if (badgeText) badgeText.textContent = getTranslation('tapStatusDone') || 'Đã hết 15 giây! Nhập số nhịp bạn đếm được:';
+      if (clockSub) {
+        clockSub.textContent = 'HOÀN THÀNH';
+        clockSub.className = 'tap-clock-sub done';
       }
-      if (bar) bar.style.width = '100%';
-      if (btnReset) btnReset.style.display = 'none';
+      if (btnStart) btnStart.style.display = 'none';
+      if (runningControls) runningControls.style.display = 'none';
+      if (resultCard) resultCard.style.display = 'block';
       if (btnRetest) btnRetest.style.display = 'inline-flex';
-      if (btnHeart) {
-        btnHeart.disabled = true;
-        btnHeart.style.opacity = '0.65';
-        btnHeart.style.cursor = 'not-allowed';
-      }
-
-      if (resultCard) {
-        resultCard.style.display = 'block';
-        if (this.tapCount > 0) {
-          if (finalBpmEl) finalBpmEl.textContent = `${finalBpm}`;
-          const formulaText = getTranslation('tapFormulaText') || 'nhịp trong 15s × 4';
-          if (formulaDisplay) formulaDisplay.textContent = `${this.tapCount} ${formulaText} = ${finalBpm} BPM`;
-        } else {
-          if (finalBpmEl) finalBpmEl.textContent = '--';
-          if (formulaDisplay) formulaDisplay.textContent = getTranslation('tapNoBeatsNotice') || 'Chưa ghi nhận nhịp nào. Hãy bấm Đo lại.';
-        }
-      }
     }
   }
 };
@@ -563,10 +556,7 @@ function closeTapModal() {
 }
 
 function initTap() {
-  document.getElementById('btnTap')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    PulseMeter.onTap();
-  });
+  // Đồng hồ đếm ngược 15 giây sẵn sàng
 }
 
 
