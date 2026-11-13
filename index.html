@@ -8,7 +8,7 @@
   <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn.">
   <link rel="icon" type="image/png" href="assets/logo_white_bg.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20261113_5">
 </head>
 <body>
 
@@ -554,8 +554,8 @@
           <span class="tap-badge-dot"></span>
           <span id="tapStatusBadge" data-i18n="tapStatusReady">Sẵn sàng đếm ngược 15 giây</span>
         </div>
-        <h3 class="tap-title" data-i18n="tapModalTitle">Đồng hồ đếm ngược 15 giây</h3>
-        <p class="tap-desc" data-i18n="tapModalDesc">Bấm Bắt đầu, đặt 2 ngón tay lên mạch đập cổ tay và tập trung đếm số nhịp đập trong đầu cho đến khi hết 15 giây.</p>
+        <h3 class="tap-title" data-i18n="tapModalTitle">Đồng hồ đếm ngược 15 giây (Kèm 3s chuẩn bị)</h3>
+        <p class="tap-desc" data-i18n="tapModalDesc">Bấm Bắt đầu: Hệ thống sẽ đếm lùi 3... 2... 1... để bạn kịp đặt 2 ngón tay lên mạch đập cổ tay, sau đó tự động đếm 15 giây.</p>
       </div>
 
       <!-- Vùng hiển thị Countdown tròn lớn -->
@@ -587,7 +587,7 @@
         <!-- Nút Bắt đầu khi ở trạng thái idle -->
         <button type="button" id="btnTimerStart" class="btn-timer-main" onclick="PulseMeter.start()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span data-i18n="tapBtnStart">Bắt đầu đếm ngược (15s)</span>
+          <span data-i18n="tapBtnStart">Bắt đầu (Chuẩn bị 3s ➔ Đếm 15s)</span>
         </button>
 
         <!-- Nút khi đang ở chế độ Chuẩn bị (3s) -->
@@ -683,9 +683,9 @@
   <iframe id="hpVoiceFrame" referrerpolicy="no-referrer" style="display:none;" src="about:blank"></iframe>
   <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
-  <script src="js/translations.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/algorithm.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/translations.js?v=20261113_5"></script>
+  <script src="js/audio.js?v=20261113_5"></script>
+  <script src="js/algorithm.js?v=20261113_5"></script>
+  <script src="js/app.js?v=20261113_5"></script>
 </body>
 </html>
