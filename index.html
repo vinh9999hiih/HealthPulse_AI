@@ -110,8 +110,12 @@
 
         <button id="btnElderly" class="h-pill btn-text-size" title="Phóng to cỡ chữ" data-i18n="btnElderly">A+</button>
         <button id="btnDarkMode" class="h-pill btn-icon-only" title="Đổi giao diện Sáng / Tối" aria-label="Giao diện">
-          <span class="icon-sun">☀️</span>
-          <span class="icon-moon">🌙</span>
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -370,7 +374,7 @@
           <div class="sec-label-row">
             <div>
               <span class="sec-label-title" data-i18n="vitalsSecTitle">Bảng chỉ số sinh hiệu (Vitals)</span>
-              <span id="vitalsLockBadge" class="vitals-lock-badge" style="display:none;" data-i18n="vitalsLockedBadge">🔒 Đang tạm khóa</span>
+              <span id="vitalsLockBadge" class="vitals-lock-badge" style="display:none;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span data-i18n="vitalsLockedBadge">Đang tạm khóa</span></span>
             </div>
             <span class="sec-label-hint" id="vitalsSecHint" data-i18n="vitalsSecHint">Chạm nút + / − hoặc nhập giá trị đo được</span>
           </div>
@@ -786,20 +790,23 @@
         <!-- Nút khi đang ở chế độ Chuẩn bị (3s) -->
         <div id="timerPrepControls" class="timer-running-row" style="display:none;">
           <button type="button" class="btn-timer-action action-skip" onclick="PulseMeter.skipPrep()">
-            ⚡ <span data-i18n="tapBtnSkipPrep">Đếm ngay</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span data-i18n="tapBtnSkipPrep">Đếm ngay</span>
           </button>
           <button type="button" class="btn-timer-action action-reset" onclick="PulseMeter.reset()">
-            🔄 <span data-i18n="tapBtnReset">Hủy</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span data-i18n="tapBtnReset">Hủy</span>
           </button>
         </div>
 
         <!-- Nút khi đang chạy: Tạm dừng / Hủy -->
         <div id="timerRunningControls" class="timer-running-row" style="display:none;">
           <button type="button" id="btnTimerPause" class="btn-timer-action" onclick="PulseMeter.togglePause()">
-            <span id="btnPauseText">⏸️ Tạm dừng</span>
+            <span id="btnPauseText" data-i18n="tapBtnPause">Tạm dừng</span>
           </button>
           <button type="button" class="btn-timer-action action-reset" onclick="PulseMeter.reset()">
-            🔄 <span data-i18n="tapBtnReset">Đặt lại</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span data-i18n="tapBtnReset">Đặt lại</span>
           </button>
         </div>
       </div>
@@ -822,7 +829,8 @@
       <!-- Footer Buttons -->
       <div class="tap-modal-footer">
         <button type="button" id="btnApplyTapCount" class="btn-tap-primary" onclick="PulseMeter.applyCountedResult()">
-          ✓ <span data-i18n="tapBtnApplyResult">Áp dụng kết quả (<span id="calcBpmResult">72</span> BPM)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+          <span data-i18n="tapBtnApplyResult">Áp dụng kết quả (<span id="calcBpmResult">72</span> BPM)</span>
         </button>
         <button type="button" class="btn-tap-secondary" onclick="PulseMeter.closeModal()" data-i18n="btnClose">Đóng</button>
       </div>
