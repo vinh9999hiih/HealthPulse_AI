@@ -274,6 +274,8 @@ function syncDisplays() {
 
   // Đồng bộ mục Nhịp tim mạch cổ tay (chế độ ước lượng lâm sàng)
   const estHR = S.est.manualPulse || S.hr || 70;
+  const elEstHR = document.getElementById('dispEstHR');
+  if (elEstHR) elEstHR.textContent = estHR;
   const inpEstHR = document.getElementById('inpEstHR');
   if (inpEstHR && document.activeElement !== inpEstHR) {
     inpEstHR.value = estHR;
@@ -286,14 +288,14 @@ function syncDisplays() {
       statText = currentLang === 'vi' ? 'Rất nhanh (Nguy hiểm)' : getTranslation('statHRFast');
       cls = 'status-danger';
     } else if (estHR >= 100) {
-      statText = getTranslation('statHRFast');
+      statText = currentLang === 'vi' ? 'Nhanh' : getTranslation('statHRFast');
       cls = 'status-warn';
     } else if (estHR < 60) {
-      statText = getTranslation('statHRSlow');
+      statText = currentLang === 'vi' ? 'Chậm' : getTranslation('statHRSlow');
       cls = 'status-warn';
     }
     badgeEstHR.textContent = `${estHR} BPM (${statText})`;
-    badgeEstHR.className = `pulse-status-badge ${cls}`;
+    badgeEstHR.className = `v-status-badge ${cls}`;
   }
 
   // 4. Huyết áp (Đồng bộ cả Tâm thu và Tâm trương)
@@ -346,6 +348,9 @@ function updateEstModeUI() {
     grid.querySelectorAll('button').forEach(btn => {
       btn.disabled = S.estimated;
     });
+    grid.querySelectorAll('input').forEach(inp => {
+      inp.disabled = S.estimated;
+    });
   }
 
   if (lockBadge) lockBadge.style.display = S.estimated ? 'inline-flex' : 'none';
@@ -353,7 +358,7 @@ function updateEstModeUI() {
 
   if (hint) {
     hint.textContent = S.estimated
-      ? (getTranslation('vitalsSecHintLocked') || 'Đã vô hiệu hóa để dùng bảng ước lượng bên dưới')
+      ? (getTranslation('vitalsSecHintLocked') || 'Bảng đo trực tiếp đã tạm khóa để sử dụng chế độ ước lượng bên dưới')
       : getTranslation('vitalsSecHint');
   }
 }
@@ -1070,29 +1075,42 @@ if ('speechSynthesis' in window) {
   };
 }
 
-function findVoiceForLang(lang) {
-  let voices = window.speechSynthesis.getVoices() || [];
+function findVoiceForLang(lang, preference) {
+  let voices = [];
+  if ('speechSynthesis' in window) {
+    try { voices = window.speechSynthesis.getVoices() || []; } catch(e) {}
+  }
   if (!voices.length && systemVoices.length) voices = systemVoices;
   const target = (lang || 'vi').toLowerCase();
   
-  // 1. Tìm chính xác theo mã ngôn ngữ (vi-VN, vi_VN, vi)
-  let found = voices.find(v => {
+  // Lọc tất cả các giọng khớp chính xác theo ngôn ngữ
+  let candidates = voices.filter(v => {
     const l = (v.lang || '').replace('_', '-').toLowerCase();
+    const n = (v.name || '').toLowerCase();
+    if (target === 'vi') {
+      return l.startsWith('vi') || n.includes('viet') || n.includes('tiếng việt') || n.includes('linh') || n.includes('hoaimy') || n.includes('namminh') || n.includes('an');
+    }
     return l === target || l.startsWith(target + '-') || l.startsWith(target);
   });
-  if (found) return found;
 
-  // 2. Tìm theo tên giọng (Linh, Mai, HoaiMy, NamMinh, Google Tiếng Việt, Vietnamese, Vietnam)
-  if (target === 'vi') {
-    found = voices.find(v => {
+  if (!candidates.length) return null;
+
+  // Lọc theo sở thích giới tính nếu có
+  if (preference === 'male') {
+    const m = candidates.find(v => {
       const n = (v.name || '').toLowerCase();
-      const l = (v.lang || '').toLowerCase();
-      return n.includes('viet') || n.includes('tiếng việt') || l.includes('vie') || n.includes('linh') || n.includes('mai');
+      return n.includes('nam') || n.includes('male') || n.includes('an');
     });
-    if (found) return found;
+    if (m) return m;
+  } else if (preference === 'female') {
+    const f = candidates.find(v => {
+      const n = (v.name || '').toLowerCase();
+      return n.includes('linh') || n.includes('mai') || n.includes('hoaimy') || n.includes('female') || n.includes('nữ');
+    });
+    if (f) return f;
   }
 
-  return voices.find(v => (v.lang || '').toLowerCase().startsWith(target));
+  return candidates[0];
 }
 
 function splitTextIntoTTSChunks(text, maxLength = 120) {
@@ -1131,40 +1149,17 @@ function splitTextIntoTTSChunks(text, maxLength = 120) {
 function playGoogleTTS(text, lang) {
   const chunks = splitTextIntoTTSChunks(text, 100);
   let idx = 0;
-  let fallbackTriggered = false;
 
-  // Lấy đối tượng audio: ưu tiên tạo trong iframe about:blank để TUYỆT ĐỐI KHÔNG GỬI REFERER
-  let audio = null;
-  try {
-    const frame = document.getElementById('hpVoiceFrame');
-    if (frame && frame.contentWindow && frame.contentWindow.document) {
-      const fdoc = frame.contentWindow.document;
-      let fa = fdoc.getElementById('frameTtsAudio');
-      if (!fa) {
-        fa = fdoc.createElement('audio');
-        fa.id = 'frameTtsAudio';
-        fa.setAttribute('referrerpolicy', 'no-referrer');
-        fdoc.body.appendChild(fa);
-      }
-      audio = fa;
-    }
-  } catch(e) {
-    console.warn('Iframe audio fallback:', e);
-  }
-
+  // Dùng trực tiếp phần tử Audio ở trang chính (không dùng iframe để không bị lỗi Autoplay trên thiết bị di động)
+  let audio = document.getElementById('hpVoiceAudio');
   if (!audio) {
-    audio = document.getElementById('hpVoiceAudio') || new Audio();
-    audio.referrerPolicy = 'no-referrer';
-    audio.setAttribute('referrerpolicy', 'no-referrer');
+    audio = new Audio();
+    audio.id = 'hpVoiceAudio';
+    document.body.appendChild(audio);
   }
-
+  audio.referrerPolicy = 'no-referrer';
+  audio.setAttribute('referrerpolicy', 'no-referrer');
   currentVoiceAudio = audio;
-
-  function doFallback() {
-    if (fallbackTriggered) return;
-    fallbackTriggered = true;
-    speakWithWebSpeech(text);
-  }
 
   function playNextChunk() {
     if (!isVoiceSpeaking) return;
@@ -1184,13 +1179,18 @@ function playGoogleTTS(text, lang) {
     };
 
     audio.onerror = (err) => {
-      console.warn('Google TTS lỗi chunk, thử máy chủ google.com.vn:', err);
+      console.warn('Google TTS lỗi chunk, thử máy chủ mirror:', err);
       const fallbackUrl = `https://translate.google.com.vn/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
-      audio.onerror = () => { doFallback(); };
+      audio.onerror = () => {
+        stopVoice();
+        showToast(currentLang === 'vi' ? 'Không thể tải âm thanh giọng nói, vui lòng kiểm tra mạng' : 'Audio stream failed, please check network', 'warn');
+      };
       audio.src = fallbackUrl;
       const retryPromise = audio.play();
       if (retryPromise !== undefined) {
-        retryPromise.catch(() => { doFallback(); });
+        retryPromise.catch(() => {
+          stopVoice();
+        });
       }
     };
 
@@ -1198,10 +1198,8 @@ function playGoogleTTS(text, lang) {
     if (playPromise !== undefined) {
       playPromise.catch(err => {
         console.warn('Audio play bị chặn hoặc lỗi mạng:', err);
-        const fallbackUrl = `https://translate.google.com.vn/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
-        audio.onerror = () => { doFallback(); };
-        audio.src = fallbackUrl;
-        audio.play().catch(() => { doFallback(); });
+        stopVoice();
+        showToast(currentLang === 'vi' ? 'Trình duyệt yêu cầu chạm lại nút đọc để cho phép phát âm thanh' : 'Please tap the listen button again to allow audio', 'warn');
       });
     }
   }
@@ -1250,42 +1248,30 @@ function readVoice() {
 
   const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
 
-  // Nếu người dùng chọn giọng máy Web Speech API
-  if (selectedVoice === 'system') {
-    speakWithWebSpeech(text);
+  // 1. Nếu người dùng chủ động chọn 'google': Phát qua Google TTS
+  if (selectedVoice === 'google') {
+    playGoogleTTS(text, currentLang);
     return;
   }
 
-  // Kiểm tra môi trường: nếu đang chạy trên localhost có backend Python server.py
-  const isLocalBackend = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
+  // 2. Tìm kiếm giọng bản địa chuẩn trong Web Speech API (như Linh trên iOS, Google tiếng Việt trên Android, Hoài My/Nam Minh/An trên Windows)
+  const nativeVoice = findVoiceForLang(currentLang, selectedVoice);
 
-  if (isLocalBackend) {
-    const audio = document.getElementById('hpVoiceAudio') || new Audio();
-    audio.referrerPolicy = 'no-referrer';
-    currentVoiceAudio = audio;
-
-    const ttsUrl = `/api/tts?lang=${currentLang}&voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
-    audio.src = ttsUrl;
-
-    audio.onended = () => { stopVoice(); };
-    audio.onerror = () => {
-      console.warn('API Edge TTS không phản hồi, chuyển sang Google TTS');
-      playGoogleTTS(text, currentLang);
-    };
-    audio.play().catch(e => {
-      console.warn('Audio play Edge TTS bị lỗi, chuyển sang Google TTS:', e);
-      playGoogleTTS(text, currentLang);
-    });
-  } else {
-    // Trên GitHub Pages / Web trực tuyến: Phát qua Google TTS đảm bảo chuẩn tiếng Việt tự nhiên
-    playGoogleTTS(text, currentLang);
+  if (nativeVoice) {
+    // Có giọng bản địa đúng ngôn ngữ -> Phát ngay bằng Web Speech (mượt mà, không phụ thuộc mạng, không bị chặn)
+    speakWithWebSpeech(text, nativeVoice);
+    return;
   }
+
+  // 3. Nếu trong Web Speech KHÔNG CÓ giọng tiếng Việt chuẩn (tránh lỗi "verson tiếng Việt mà đọc tiếng Anh"):
+  // Chuyển sang Google TTS trực tuyến để phát âm tiếng Việt chuẩn 100%!
+  playGoogleTTS(text, currentLang);
 }
 
-function speakWithWebSpeech(text) {
+function speakWithWebSpeech(text, specificVoice) {
   if (!('speechSynthesis' in window)) {
     stopVoice();
-    alert('Trình duyệt của bạn chưa hỗ trợ tính năng đọc giọng nói.');
+    showToast(getTranslation('speechNotSupported') || 'Trình duyệt chưa hỗ trợ bộ đọc giọng nói', 'warn');
     return;
   }
 
@@ -1306,10 +1292,17 @@ function speakWithWebSpeech(text) {
   utter.rate = 0.95;
   utter.pitch = 1.0;
 
-  const matched = findVoiceForLang(currentLang);
+  const matched = specificVoice || findVoiceForLang(currentLang);
   if (matched) {
     utter.voice = matched;
     utter.lang = matched.lang || utter.lang;
+  } else {
+    // Tuyệt đối không để giọng Anh đọc tiếng Việt
+    if (currentLang === 'vi') {
+      console.warn('Không tìm thấy voice tiếng Việt phù hợp, chuyển sang Google TTS');
+      playGoogleTTS(text, currentLang);
+      return;
+    }
   }
 
   utter.onstart = () => {

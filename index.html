@@ -8,7 +8,7 @@
   <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe y tế cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn lâm sàng chuẩn A4.">
   <link rel="icon" type="image/png" href="assets/logo_white_bg.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/style.css?v=20261113_7">
+  <link rel="stylesheet" href="css/style.css?v=20261113_9">
 </head>
 <body>
 
@@ -65,7 +65,7 @@
             <span id="activeFlagIcon" style="display:flex;align-items:center;">
               <svg class="flag-svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#da251d" rx="2"/><polygon points="15,4 16.5,8.8 21.6,8.8 17.5,11.8 19.1,16.6 15,13.6 10.9,16.6 12.5,11.8 8.4,8.8 13.5,8.8" fill="#ff0"/></svg>
             </span>
-            <span id="activeLangName">Tiếng Việt</span>
+            <span id="activeLangName"><span class="lang-name-full">Tiếng Việt</span><span class="lang-name-short">VI</span></span>
             <span class="lang-arrow">▾</span>
           </button>
           
@@ -825,7 +825,7 @@
   </div>
 
   <!-- ===== MODAL: CẤP CỨU Y TẾ KHẨN CẤP (SOS 115) ===== -->
-  <div id="modalSOS" class="modal-bg">
+  <div id="modalSOS" class="modal-bg" style="display:none;">
     <div class="modal-box sos-theme">
       <button class="modal-close" onclick="closeSOS()">&times;</button>
       <div style="text-align:center;margin-bottom:1.25rem;">
@@ -860,9 +860,9 @@
   <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
   <!-- Scripts với query string cache-buster -->
-  <script src="js/translations.js?v=20261113_7"></script>
-  <script src="js/audio.js?v=20261113_7"></script>
-  <script src="js/algorithm.js?v=20261113_7"></script>
-  <script src="js/app.js?v=20261113_7"></script>
+  <script src="js/translations.js?v=20261113_9"></script>
+  <script src="js/audio.js?v=20261113_9"></script>
+  <script src="js/algorithm.js?v=20261113_9"></script>
+  <script src="js/app.js?v=20261113_9"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@ const TRANSLATIONS = {
     langName: "Tiếng Việt",
     appTitle: "HealthPulse AI",
     appDesc: "Theo dõi & Cảnh báo sức khỏe",
-    btnElderly: "Chữ lớn",
+    btnElderly: "A+",
     btnDarkMode: "Giao diện",
     btnSOS: "Cấp cứu 115",
     
@@ -54,6 +54,28 @@ const TRANSLATIONS = {
     toastEstModeOff: "Đã chuyển sang chế độ Nhập chỉ số trực tiếp",
     toastThemeDark: "Đã bật Giao diện Tối",
     toastThemeLight: "Đã bật Giao diện Sáng",
+
+    pulseStep1: "Đặt 2 ngón tay (trỏ & giữa) lên mặt trong cổ tay, ngay dưới gốc ngón cái.",
+    pulseStep2: "Ấn nhẹ cho đến khi cảm nhận rõ nhịp đập rộn ràng.",
+    pulseStep3: "Bấm nút dưới để đếm 15s. Nhập số nhịp đếm được để tự động tính BPM.",
+    btnTapTimer15s: "Đo nhịp tim 15 giây (Get Ready 3s)",
+    symCountZero: "0 được chọn",
+    tapCalcTitle: "Số nhịp bạn đếm được trong 15 giây:",
+    tapBtnApplyResult: "Áp dụng kết quả",
+    tapStatusReady: "Sẵn sàng (Tự động đếm lùi 3s chuẩn bị)",
+    tapStatusPrep: "Chuẩn bị: Đặt 2 ngón tay lên cổ tay... (3s)",
+    tapStatusRunning: "Đang đếm ngược 15 giây… Hãy đếm số nhịp đập trong đầu!",
+    tapStatusPaused: "Đang tạm dừng đếm ngược",
+    tapStatusDone: "Đã hết 15 giây! Nhập số nhịp bạn đếm được:",
+    tapBtnStart: "Bắt đầu (Chuẩn bị 3s ➔ Đếm 15s)",
+    tapBtnSkipPrep: "Đếm ngay (Bỏ qua 3s)",
+    tapBtnReset: "Đặt lại",
+    tapBtnPause: "Tạm dừng",
+    tapBtnResume: "Tiếp tục",
+    statusSafe: "Ổn định",
+    statusWarning: "Cần chú ý",
+    statusDanger: "Nguy cấp",
+
     smsCopiedAlert: "Đã sao chép nội dung tin nhắn khẩn cấp kèm tọa độ GPS!",
     disclaimerText: "Báo cáo này được tự động tạo bởi phần mềm HealthPulse AI nhằm mục đích hỗ trợ tham khảo và cảnh báo sớm, không thay thế cho chẩn đoán chính thức của bác sĩ chuyên khoa.",
     homeSymptomsTitle: "Triệu chứng đã ghi nhận",
@@ -63,6 +85,7 @@ const TRANSLATIONS = {
     adviceLabel: "Khuyến cáo:",
     scheduleLabel: "Lịch theo dõi:",
     btnLogToday: "GHI NHẬN CHỈ SỐ HÔM NAY",
+    btnSubmitCheckin: "PHÂN TÍCH & LƯU CHỈ SỐ VÀO NHẬT KÝ",
 
     // Checkin / Measurements
     checkinTitle: "Ghi nhận chỉ số sức khỏe",
@@ -232,7 +255,7 @@ const TRANSLATIONS = {
     langName: "English",
     appTitle: "HealthPulse AI",
     appDesc: "Clinical Health Monitor & AI Warning",
-    btnElderly: "Large Text",
+    btnElderly: "A+",
     btnDarkMode: "Theme",
     btnSOS: "Emergency 115",
 
@@ -278,6 +301,28 @@ const TRANSLATIONS = {
     toastEstModeOff: "Switched to Direct Vitals Entry Mode",
     toastThemeDark: "Dark mode activated",
     toastThemeLight: "Light mode activated",
+
+    pulseStep1: "Place 2 fingertips (index & middle) on inside of wrist, below thumb.",
+    pulseStep2: "Press lightly until you feel the rhythmic pulse beats.",
+    pulseStep3: "Tap below to start 15s timer. Enter counted beats to get BPM.",
+    btnTapTimer15s: "15-Second Pulse Check (3s Prep)",
+    symCountZero: "0 selected",
+    tapCalcTitle: "Beats counted in 15 seconds:",
+    tapBtnApplyResult: "Apply Result",
+    tapStatusReady: "Ready (3s Get Ready Countdown)",
+    tapStatusPrep: "Get Ready: Place 2 fingers on wrist... (3s)",
+    tapStatusRunning: "Counting 15 seconds… Count your pulse beats!",
+    tapStatusPaused: "Timer paused",
+    tapStatusDone: "15 seconds completed! Enter counted beats:",
+    tapBtnStart: "Start (3s Prep ➔ 15s Count)",
+    tapBtnSkipPrep: "Count Now (Skip 3s)",
+    tapBtnReset: "Reset",
+    tapBtnPause: "Pause",
+    tapBtnResume: "Resume",
+    statusSafe: "Stable",
+    statusWarning: "Warning",
+    statusDanger: "Critical",
+
     smsCopiedAlert: "Emergency SOS message with GPS coordinates copied to clipboard!",
     disclaimerText: "This report is generated automatically by HealthPulse AI software for reference and early warning purposes only. It does not replace an official clinical diagnosis by a licensed physician.",
     homeSymptomsTitle: "Recorded Symptoms",
@@ -287,6 +332,7 @@ const TRANSLATIONS = {
     adviceLabel: "Clinical Advice:",
     scheduleLabel: "Monitoring Plan:",
     btnLogToday: "LOG TODAY'S VITALS",
+    btnSubmitCheckin: "ANALYZE & SAVE TO HEALTH LOG",
 
     // Checkin / Measurements
     checkinTitle: "Log Health Measurements",
@@ -456,7 +502,7 @@ const TRANSLATIONS = {
     langName: "한국어",
     appTitle: "HealthPulse AI",
     appDesc: "개인 건강 모니터링 및 AI 조기 경보",
-    btnElderly: "큰 글자",
+    btnElderly: "A+",
     btnDarkMode: "테마",
     btnSOS: "긴급 115 / 119",
 
@@ -502,6 +548,28 @@ const TRANSLATIONS = {
     toastEstModeOff: "직접 측정 모드로 전환되었습니다",
     toastThemeDark: "다크 모드가 적용되었습니다",
     toastThemeLight: "라이트 모드가 적용되었습니다",
+
+    pulseStep1: "검지와 중지를 엄지손가락 아래 손목 안쪽에 가볍게 올려놓습니다.",
+    pulseStep2: "맥박이 또렷하게 느껴질 때까지 살짝 누릅니다.",
+    pulseStep3: "아래 버튼을 눌러 15초 타이머를 시작하고 맥박 수를 입력하세요.",
+    btnTapTimer15s: "15초 맥박 측정 (3초 준비)",
+    symCountZero: "0개 선택됨",
+    tapCalcTitle: "15초 동안 측정한 맥박 수:",
+    tapBtnApplyResult: "결과 적용",
+    tapStatusReady: "준비 완료 (3초 카운트다운 포함)",
+    tapStatusPrep: "준비: 손목에 손가락을 올려놓으세요... (3초)",
+    tapStatusRunning: "15초 카운트다운 중… 맥박 수를 세어보세요!",
+    tapStatusPaused: "타이머 일시 정지",
+    tapStatusDone: "15초 완료! 측정한 맥박 수를 입력하세요:",
+    tapBtnStart: "시작 (3초 준비 ➔ 15초 측정)",
+    tapBtnSkipPrep: "즉시 측정 (3초 건너뛰기)",
+    tapBtnReset: "초기화",
+    tapBtnPause: "일시 정지",
+    tapBtnResume: "계속",
+    statusSafe: "안정",
+    statusWarning: "주의 필요",
+    statusDanger: "위험",
+
     smsCopiedAlert: "GPS 좌표가 포함된 긴급 SOS 메시지가 클립보드에 복사되었습니다!",
     disclaimerText: "본 보고서는 HealthPulse AI 소프트웨어에 의해 자동 생성되었으며 참고 및 조기 경보 목적으로만 제공됩니다. 전문의의 공식적인 임상 진단을 대신할 수 없습니다.",
     homeSymptomsTitle: "기록된 증상 목록",
@@ -511,6 +579,7 @@ const TRANSLATIONS = {
     adviceLabel: "임상 권고:",
     scheduleLabel: "모니터링 계획:",
     btnLogToday: "오늘의 건강 지표 기록하기",
+    btnSubmitCheckin: "위험도 분석 및 건강 기록 저장",
 
     // Checkin / Measurements
     checkinTitle: "건강 지표 측정 및 기록",
@@ -680,7 +749,7 @@ const TRANSLATIONS = {
     langName: "中文",
     appTitle: "HealthPulse AI",
     appDesc: "临床健康监测与AI风险预警",
-    btnElderly: "大字体",
+    btnElderly: "A+",
     btnDarkMode: "界面主题",
     btnSOS: "紧急 115",
 
@@ -726,6 +795,28 @@ const TRANSLATIONS = {
     toastEstModeOff: "已切换至直接输入测量模式",
     toastThemeDark: "已切换至深色模式",
     toastThemeLight: "已切换至浅色模式",
+
+    pulseStep1: "将食指与中指指腹轻放在大拇指下方的内侧手腕处。",
+    pulseStep2: "轻压直到清晰感受到脉搏的有节律跳动。",
+    pulseStep3: "点击下方按钮开始15秒计时，输入脉搏次数自动计算BPM。",
+    btnTapTimer15s: "15秒脉搏测量 (3秒准备)",
+    symCountZero: "已选 0 项",
+    tapCalcTitle: "15秒内测得的脉搏次数：",
+    tapBtnApplyResult: "应用结果",
+    tapStatusReady: "准备就绪 (包含3秒倒计时准备)",
+    tapStatusPrep: "准备：请将两指轻按手腕脉搏处... (3秒)",
+    tapStatusRunning: "正在倒计时15秒… 请默数脉搏次数！",
+    tapStatusPaused: "倒计时已暂停",
+    tapStatusDone: "15秒已到！请输入测得的脉搏数：",
+    tapBtnStart: "开始 (3秒准备 ➔ 15秒测量)",
+    tapBtnSkipPrep: "立即测量 (跳过3秒)",
+    tapBtnReset: "重置",
+    tapBtnPause: "暂停",
+    tapBtnResume: "继续",
+    statusSafe: "稳定",
+    statusWarning: "需注意",
+    statusDanger: "危险",
+
     smsCopiedAlert: "附带GPS定位的紧急求救短信已复制到剪贴板！",
     disclaimerText: "本报告由 HealthPulse AI 智能软件自动生成，仅供参考和早期预警，不能替代专业执业医师的正式临床诊断。",
     homeSymptomsTitle: "已登记症状",
@@ -735,6 +826,7 @@ const TRANSLATIONS = {
     adviceLabel: "临床处置建议:",
     scheduleLabel: "随访监测计划:",
     btnLogToday: "记录今日健康体征",
+    btnSubmitCheckin: "分析并在健康日记中保存",
 
     // Checkin / Measurements
     checkinTitle: "录入健康监测指标",
@@ -973,7 +1065,7 @@ function applyLanguage(lang) {
   const flagEl = document.getElementById('activeFlagIcon');
   const nameEl = document.getElementById('activeLangName');
   if (flagEl && FLAG_SVGS[lang]) flagEl.innerHTML = FLAG_SVGS[lang];
-  if (nameEl && LANG_DISPLAY_NAMES[lang]) nameEl.textContent = LANG_DISPLAY_NAMES[lang];
+  if (nameEl && LANG_DISPLAY_NAMES[lang]) nameEl.innerHTML = `<span class="lang-name-full">${LANG_DISPLAY_NAMES[lang]}</span><span class="lang-name-short">${lang.toUpperCase()}</span>`;
 
   // Cập nhật trạng thái active & dấu tích trong menu chọn cờ
   document.querySelectorAll('.lang-opt-btn').forEach(btn => {
