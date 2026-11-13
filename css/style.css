@@ -1026,22 +1026,30 @@ body {
 }
 
 /* ===================================================================
-   CHECK-IN PAGE & PATIENT PROFILE
+   CHECK-IN PAGE & PINNED PATIENT PROFILE
    =================================================================== */
+.patient-pinned-card,
 .patient-compact-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--r-lg);
-  padding: 0.85rem 1.15rem;
+  padding: 1rem 1.15rem;
   margin-bottom: 1.15rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   box-shadow: var(--shadow-sm);
   transition: all var(--trans-fast);
 }
+.patient-pinned-card:hover,
 .patient-compact-card:hover {
+  border-color: var(--primary);
   box-shadow: var(--shadow);
+}
+.patient-pinned-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.95rem;
 }
 .patient-compact-left {
   display: flex;
@@ -1049,15 +1057,15 @@ body {
   gap: 0.85rem;
 }
 .patient-avatar-badge {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--primary-bg);
   color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
   box-shadow: 0 2px 8px var(--primary-glow);
 }
@@ -1072,51 +1080,65 @@ body {
   gap: 0.55rem;
 }
 .patient-name-txt {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: var(--text);
 }
 .patient-id-badge {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-sub);
   background: var(--surface-soft);
-  padding: 0.15rem 0.45rem;
+  padding: 0.15rem 0.5rem;
   border-radius: var(--r-xs);
   border: 1px solid var(--border);
+  font-family: var(--mono);
 }
 .patient-sub-txt {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--text-sub);
+  font-weight: 600;
 }
-.btn-patient-edit {
+.patient-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--r-full);
   background: var(--surface-soft);
   border: 1px solid var(--border);
-  color: var(--primary);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.35rem 0.85rem;
-  border-radius: var(--r-full);
-  cursor: pointer;
-  transition: all var(--trans-fast);
+  color: var(--text-mid);
 }
-.btn-patient-edit:hover {
-  background: var(--primary-bg);
-  border-color: var(--primary);
+.p-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
 }
 
-.patient-edit-drawer {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 1rem;
-  margin-bottom: 1.15rem;
-  animation: page-fade-up 0.2s ease;
-}
+.patient-inputs-pinned,
 .patient-inputs-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 0.75rem;
+}
+.p-fields-sub-row {
+  display: contents;
+}
+@media (max-width: 580px) {
+  .patient-inputs-pinned {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .p-fields-sub-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
 }
 .p-field {
   display: flex;

@@ -8,7 +8,7 @@
   <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe y tế cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn lâm sàng chuẩn A4.">
   <link rel="icon" type="image/png" href="assets/logo_white_bg.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/style.css?v=20261113_9">
+  <link rel="stylesheet" href="css/style.css?v=20261113_10">
 </head>
 <body>
 
@@ -328,43 +328,48 @@
       <div class="dash-grid-2col">
         <!-- Cột 1: Thông tin người đo & 4 Thẻ sinh hiệu thông minh -->
         <div class="dash-col">
-          <!-- 1. Thẻ thông tin người đo gọn gàng -->
-          <div class="patient-compact-card">
-            <div class="patient-compact-left">
-              <div class="patient-avatar-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <div class="patient-meta">
-                <div class="patient-name-row">
-                  <span id="dispPatientSummaryName" class="patient-name-txt">Nguyễn Văn A</span>
-                  <span class="patient-id-badge" id="dispPatientIdBadge">Mã: 0428</span>
+          <!-- 1. Thẻ hồ sơ người đo (Ghim cố định hiển thị trực tiếp theo yêu cầu) -->
+          <div class="patient-pinned-card">
+            <div class="patient-pinned-header">
+              <div class="patient-compact-left">
+                <div class="patient-avatar-badge">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
-                <div id="dispPatientSummaryMeta" class="patient-sub-txt">35 tuổi • Nam</div>
+                <div class="patient-meta">
+                  <div class="patient-name-row">
+                    <span id="dispPatientSummaryName" class="patient-name-txt">Lê Thị Hoàng Nghi</span>
+                    <span class="patient-id-badge" id="dispPatientIdBadge">Mã: 2829</span>
+                  </div>
+                  <div id="dispPatientSummaryMeta" class="patient-sub-txt">44 tuổi • Nữ</div>
+                </div>
+              </div>
+              <div class="patient-pinned-status">
+                <span class="patient-active-badge">
+                  <span class="p-status-dot"></span>
+                  <span data-i18n="patientProfileActive">Đang ghi nhận</span>
+                </span>
               </div>
             </div>
-            <button type="button" class="btn-patient-edit" id="btnToggleEditPatient" onclick="toggleEditPatient()">
-              <span id="txtEditPatient" data-i18n="btnEditPatient">Chỉnh sửa</span>
-            </button>
-          </div>
 
-          <!-- Drawer chỉnh sửa thông tin bệnh nhân -->
-          <div id="patientEditDrawer" class="patient-edit-drawer" style="display:none;">
-            <div class="patient-inputs-grid">
-              <div class="p-field">
+            <!-- Các ô nhập liệu ghim cố định luôn hiển thị trực tiếp (Không cần bấm mở) -->
+            <div class="patient-inputs-pinned">
+              <div class="p-field field-name">
                 <label data-i18n="lblFullName">Họ và tên:</label>
-                <input type="text" id="inpPatientName" class="p-inp" value="Nguyễn Văn A" oninput="onPatientChange()">
+                <input type="text" id="inpPatientName" class="p-inp" value="Lê Thị Hoàng Nghi" placeholder="Nhập họ và tên..." oninput="onPatientChange()">
               </div>
-              <div class="p-field">
-                <label data-i18n="lblAge">Tuổi:</label>
-                <input type="number" id="inpPatientAge" class="p-inp" value="35" min="1" max="120" oninput="onPatientChange()">
-              </div>
-              <div class="p-field">
-                <label data-i18n="lblGender">Giới tính:</label>
-                <select id="inpPatientGender" class="p-inp" onchange="onPatientChange()">
-                  <option value="Nam" data-i18n="genderMale">Nam</option>
-                  <option value="Nữ" data-i18n="genderFemale">Nữ</option>
-                  <option value="Khác" data-i18n="genderOther">Khác</option>
-                </select>
+              <div class="p-fields-sub-row">
+                <div class="p-field field-age">
+                  <label data-i18n="lblAge">Tuổi:</label>
+                  <input type="number" id="inpPatientAge" class="p-inp" value="44" min="1" max="120" oninput="onPatientChange()">
+                </div>
+                <div class="p-field field-gender">
+                  <label data-i18n="lblGender">Giới tính:</label>
+                  <select id="inpPatientGender" class="p-inp" onchange="onPatientChange()">
+                    <option value="Nữ" data-i18n="genderFemale" selected>Nữ</option>
+                    <option value="Nam" data-i18n="genderMale">Nam</option>
+                    <option value="Khác" data-i18n="genderOther">Khác</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -860,9 +865,9 @@
   <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
   <!-- Scripts với query string cache-buster -->
-  <script src="js/translations.js?v=20261113_9"></script>
-  <script src="js/audio.js?v=20261113_9"></script>
-  <script src="js/algorithm.js?v=20261113_9"></script>
-  <script src="js/app.js?v=20261113_9"></script>
+  <script src="js/translations.js?v=20261113_10"></script>
+  <script src="js/audio.js?v=20261113_10"></script>
+  <script src="js/algorithm.js?v=20261113_10"></script>
+  <script src="js/app.js?v=20261113_10"></script>
 </body>
 </html>

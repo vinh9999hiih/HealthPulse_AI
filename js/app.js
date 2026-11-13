@@ -8,10 +8,10 @@
 const S = {
   lang: 'vi',
   patient: {
-    id: String(Math.floor(1 + Math.random() * 9999)).padStart(4, '0'),
-    name: 'Nguyễn Văn A',
-    age: 35,
-    gender: 'Nam'
+    id: '2829',
+    name: 'Lê Thị Hoàng Nghi',
+    age: 44,
+    gender: 'Nữ'
   },
   temp: 36.5, spo2: 98, hr: 75, sys: 120, dia: 80,
   symptoms: [], days: 1,
@@ -149,14 +149,14 @@ function onPatientChange() {
 
 function updatePatientSummary() {
   const elName = document.getElementById('dispPatientSummaryName');
-  if (elName) elName.textContent = S.patient.name || 'Nguyễn Văn A';
+  if (elName) elName.textContent = S.patient.name || 'Lê Thị Hoàng Nghi';
   const elMeta = document.getElementById('dispPatientSummaryMeta');
   const genderKey = S.patient.gender === 'Nữ' ? 'genderFemale' : S.patient.gender === 'Khác' ? 'genderOther' : 'genderMale';
   const genderText = getTranslation(genderKey);
-  const ageUnit = getTranslation('lblAge').toLowerCase();
-  if (elMeta) elMeta.textContent = `${S.patient.age || 35} ${ageUnit} • ${genderText}`;
+  const ageUnit = currentLang === 'vi' ? 'tuổi' : getTranslation('lblAge').toLowerCase();
+  if (elMeta) elMeta.textContent = `${S.patient.age || 44} ${ageUnit} • ${genderText}`;
   const elBadge = document.getElementById('dispPatientIdBadge');
-  if (elBadge) elBadge.textContent = `${getTranslation('patientIdLabel')} ${S.patient.id}`;
+  if (elBadge) elBadge.textContent = `${getTranslation('patientIdLabel')} ${S.patient.id || '2829'}`;
 }
 
 /* ===== STEPPER & VITALS ===== */
