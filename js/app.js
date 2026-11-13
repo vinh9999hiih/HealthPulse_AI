@@ -251,18 +251,20 @@ function syncDisplays() {
     badgeEstHR.className = `pulse-status-badge ${cls}`;
   }
 
-  // 4. Huyết áp
+  // 4. Huyết áp (Đồng bộ cả Tâm thu và Tâm trương)
   const elBP = document.getElementById('dispBP');
   if (elBP) elBP.textContent = `${S.sys}/${S.dia}`;
+  const elSys = document.getElementById('dispSys');
+  if (elSys) elSys.textContent = S.sys;
+  const elDia = document.getElementById('dispDia');
+  if (elDia) elDia.textContent = S.dia;
+
   const badgeBP = document.getElementById('badgeBP');
   if (badgeBP) {
-    if (S.sys >= 140 || S.sys < 90) {
-      badgeBP.textContent = `${getTranslation('statWarning')}`;
-      badgeBP.className = 'v-status-badge status-warn';
-    } else {
-      badgeBP.textContent = `${getTranslation('statSafe')}`;
-      badgeBP.className = 'v-status-badge status-ok';
-    }
+    const isAbnormal = S.sys >= 140 || S.sys < 90 || S.dia >= 90 || S.dia < 60;
+    const statText = isAbnormal ? getTranslation('statWarning') : getTranslation('statSafe');
+    badgeBP.textContent = `${S.sys}/${S.dia} (${statText})`;
+    badgeBP.className = `v-status-badge ${isAbnormal ? 'status-warn' : 'status-ok'}`;
   }
 
   // 5. Số ngày
@@ -662,8 +664,10 @@ function analyze() {
   const hrStat = displayHR >= 110 ? getTranslation('statHRFast') : displayHR < 60 ? getTranslation('statHRSlow') : getTranslation('statSafe');
   updateHomeMetric('mHR', 'mHRVal', 'mHRStat', `${displayHR} BPM`, hrStat, displayHR >= 110 ? 'warn' : 'ok');
 
-  const bpStat = S.sys >= 140 ? getTranslation('statBPHigh') : S.sys < 90 ? getTranslation('statBPLow') : getTranslation('statSafe');
-  updateHomeMetric('mBP', 'mBPVal', 'mBPStat', `${S.sys}/${S.dia}`, bpStat, S.sys >= 140 || S.sys < 90 ? 'warn' : 'ok');
+  const isBPDanger = S.sys >= 180 || S.dia >= 120 || S.sys < 90 || S.dia < 60;
+  const isBPWarn = S.sys >= 140 || S.dia >= 90;
+  const bpStat = (S.sys >= 140 || S.dia >= 90) ? getTranslation('statBPHigh') : (S.sys < 90 || S.dia < 60) ? getTranslation('statBPLow') : getTranslation('statSafe');
+  updateHomeMetric('mBP', 'mBPVal', 'mBPStat', `${S.sys}/${S.dia}`, bpStat, isBPDanger ? 'danger' : isBPWarn ? 'warn' : 'ok');
 
   // Lời khuyên AI trên Home
   const homeAdv = document.getElementById('homeAdvice');
@@ -925,12 +929,42 @@ function splitTextIntoTTSChunks(text, maxLength = 120) {
 }
 
 function playGoogleTTS(text, lang) {
-  const chunks = splitTextIntoTTSChunks(text, 120);
+  const chunks = splitTextIntoTTSChunks(text, 100);
   let idx = 0;
+  let fallbackTriggered = false;
 
-  const audio = currentVoiceAudio || new Audio();
+  // Lấy đối tượng audio: ưu tiên tạo trong iframe about:blank để TUYỆT ĐỐI KHÔNG GỬI REFERER
+  let audio = null;
+  try {
+    const frame = document.getElementById('hpVoiceFrame');
+    if (frame && frame.contentWindow && frame.contentWindow.document) {
+      const fdoc = frame.contentWindow.document;
+      let fa = fdoc.getElementById('frameTtsAudio');
+      if (!fa) {
+        fa = fdoc.createElement('audio');
+        fa.id = 'frameTtsAudio';
+        fa.setAttribute('referrerpolicy', 'no-referrer');
+        fdoc.body.appendChild(fa);
+      }
+      audio = fa;
+    }
+  } catch(e) {
+    console.warn('Iframe audio fallback:', e);
+  }
+
+  if (!audio) {
+    audio = document.getElementById('hpVoiceAudio') || new Audio();
+    audio.referrerPolicy = 'no-referrer';
+    audio.setAttribute('referrerpolicy', 'no-referrer');
+  }
+
   currentVoiceAudio = audio;
-  audio.referrerPolicy = 'no-referrer';
+
+  function doFallback() {
+    if (fallbackTriggered) return;
+    fallbackTriggered = true;
+    speakWithWebSpeech(text);
+  }
 
   function playNextChunk() {
     if (!isVoiceSpeaking) return;
@@ -950,15 +984,24 @@ function playGoogleTTS(text, lang) {
     };
 
     audio.onerror = (err) => {
-      console.warn('Google TTS không phản hồi, chuyển sang Web Speech:', err);
-      speakWithWebSpeech(text);
+      console.warn('Google TTS lỗi chunk, thử máy chủ google.com.vn:', err);
+      const fallbackUrl = `https://translate.google.com.vn/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
+      audio.onerror = () => { doFallback(); };
+      audio.src = fallbackUrl;
+      const retryPromise = audio.play();
+      if (retryPromise !== undefined) {
+        retryPromise.catch(() => { doFallback(); });
+      }
     };
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio play bị chặn hoặc lỗi mạng, chuyển sang Web Speech:', err);
-        speakWithWebSpeech(text);
+        console.warn('Audio play bị chặn hoặc lỗi mạng:', err);
+        const fallbackUrl = `https://translate.google.com.vn/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
+        audio.onerror = () => { doFallback(); };
+        audio.src = fallbackUrl;
+        audio.play().catch(() => { doFallback(); });
       });
     }
   }
@@ -1005,16 +1048,22 @@ function readVoice() {
   isVoiceSpeaking = true;
   updateVoiceUI(true);
 
-  // Tạo sẵn đối tượng Audio ngay trong user gesture của sự kiện click với no-referrer
-  const audio = new Audio();
-  audio.referrerPolicy = 'no-referrer';
-  currentVoiceAudio = audio;
+  const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
+
+  // Nếu người dùng chọn giọng máy Web Speech API
+  if (selectedVoice === 'system') {
+    speakWithWebSpeech(text);
+    return;
+  }
 
   // Kiểm tra môi trường: nếu đang chạy trên localhost có backend Python server.py
   const isLocalBackend = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
 
   if (isLocalBackend) {
-    const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
+    const audio = document.getElementById('hpVoiceAudio') || new Audio();
+    audio.referrerPolicy = 'no-referrer';
+    currentVoiceAudio = audio;
+
     const ttsUrl = `/api/tts?lang=${currentLang}&voice=${selectedVoice}&text=${encodeURIComponent(text)}`;
     audio.src = ttsUrl;
 
@@ -1028,7 +1077,7 @@ function readVoice() {
       playGoogleTTS(text, currentLang);
     });
   } else {
-    // Trên GitHub Pages / Web trực tuyến: Phát qua Google TTS đảm bảo 100% đúng chuẩn giọng tiếng Việt tự nhiên
+    // Trên GitHub Pages / Web trực tuyến: Phát qua Google TTS đảm bảo chuẩn tiếng Việt tự nhiên
     playGoogleTTS(text, currentLang);
   }
 }

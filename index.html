@@ -301,20 +301,46 @@
           </div>
         </div>
 
-        <!-- 4. Huyết áp -->
-        <div class="vital-smart-card" id="cardBP">
+        <!-- 4. Huyết áp (Hỗ trợ chỉnh cả Tâm thu và Tâm trương) -->
+        <div class="vital-smart-card card-bp-smart" id="cardBP">
           <div class="v-card-header">
             <div class="v-card-name"><span data-i18n="bpLabel">Huyết áp</span></div>
             <span class="v-status-badge status-ok" id="badgeBP">120/80</span>
           </div>
-          <div class="v-card-body">
-            <div class="v-num-box">
-              <span id="dispBP" class="v-num-val">120/80</span>
-              <span class="v-unit">mmHg</span>
+          <!-- Giữ phần tử ẩn để đồng bộ tương thích -->
+          <span id="dispBP" style="display:none;">120/80</span>
+
+          <div class="bp-dual-container">
+            <!-- Hàng 1: Tâm thu (Systolic - Số trên) -->
+            <div class="bp-control-row">
+              <div class="bp-label-group">
+                <span class="bp-name" data-i18n="lblSystolic">Tâm thu</span>
+                <span class="bp-subname" data-i18n="lblSysSub">(Số trên)</span>
+              </div>
+              <div class="bp-val-wrap">
+                <span id="dispSys" class="bp-val-num">120</span>
+                <span class="bp-val-unit">mmHg</span>
+              </div>
+              <div class="bp-btn-stepper">
+                <button type="button" class="bp-mini-btn" onclick="stepVal('sys',-5)" aria-label="Giảm tâm thu">−</button>
+                <button type="button" class="bp-mini-btn" onclick="stepVal('sys',5)" aria-label="Tăng tâm thu">+</button>
+              </div>
             </div>
-            <div class="v-stepper-btns">
-              <button class="v-btn" onclick="stepVal('sys',-5)" aria-label="Giảm huyết áp">−</button>
-              <button class="v-btn" onclick="stepVal('sys',5)" aria-label="Tăng huyết áp">+</button>
+
+            <!-- Hàng 2: Tâm trương (Diastolic - Số dưới) -->
+            <div class="bp-control-row">
+              <div class="bp-label-group">
+                <span class="bp-name" data-i18n="lblDiastolic">Tâm trương</span>
+                <span class="bp-subname" data-i18n="lblDiaSub">(Số dưới)</span>
+              </div>
+              <div class="bp-val-wrap">
+                <span id="dispDia" class="bp-val-num">80</span>
+                <span class="bp-val-unit">mmHg</span>
+              </div>
+              <div class="bp-btn-stepper">
+                <button type="button" class="bp-mini-btn" onclick="stepVal('dia',-5)" aria-label="Giảm tâm trương">−</button>
+                <button type="button" class="bp-mini-btn" onclick="stepVal('dia',5)" aria-label="Tăng tâm trương">+</button>
+              </div>
             </div>
           </div>
           <div class="v-card-footer" data-i18n="bpHint">Bình thường: 120 / 80 mmHg</div>
@@ -642,6 +668,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Khung iframe & audio không gửi Referer hỗ trợ đọc AI Voice trên mọi thiết bị di động -->
+  <iframe id="hpVoiceFrame" referrerpolicy="no-referrer" style="display:none;" src="about:blank"></iframe>
+  <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
   <script src="js/translations.js"></script>
   <script src="js/audio.js"></script>
