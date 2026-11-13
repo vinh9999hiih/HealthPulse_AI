@@ -665,34 +665,37 @@ body {
 .voice-control-bar {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  margin-top: 1.25rem;
-  padding-top: 1rem;
+  margin-top: 1.15rem;
+  padding-top: 0.95rem;
   border-top: 1px solid var(--border);
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .btn-voice {
+  width: 100%;
   background: var(--surface-soft);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
   color: var(--primary);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  padding: 0.45rem 1rem;
+  padding: 0.7rem 1.15rem;
+  min-height: 44px;
   cursor: pointer;
   transition: all var(--trans-fast);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .btn-voice:hover {
   background: var(--primary-bg);
   border-color: var(--primary);
+  transform: translateY(-1px);
 }
 .btn-voice:active {
-  transform: scale(0.96);
+  transform: scale(0.98);
 }
 .btn-voice.speaking {
   background: #dc2626 !important;
@@ -724,32 +727,6 @@ body {
 @keyframes wave-bar {
   0% { height: 3px; }
   100% { height: 16px; }
-}
-
-.voice-select-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.voice-select-label {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--text-sub);
-}
-.voice-select {
-  background: var(--surface-soft);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.35rem 0.65rem;
-  border-radius: var(--r-sm);
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--trans-fast);
-}
-.voice-select:focus {
-  border-color: var(--primary);
 }
 
 /* ===================================================================

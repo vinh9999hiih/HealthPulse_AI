@@ -1031,15 +1031,11 @@ function updateVoiceUI(speaking) {
   const btn = document.getElementById('btnVoice');
   const txt = document.getElementById('voiceBtnText');
   const icon = document.getElementById('voiceIcon');
+  const wf = document.getElementById('voiceWaveform');
   if (btn) btn.classList.toggle('speaking', speaking);
   if (txt) txt.textContent = speaking ? getTranslation('btnVoiceStop') : getTranslation('btnVoice');
-  if (icon) {
-    if (speaking) {
-      icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
-    } else {
-      icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
-    }
-  }
+  if (icon) icon.style.display = speaking ? 'none' : 'inline-flex';
+  if (wf) wf.style.display = speaking ? 'inline-flex' : 'none';
 }
 
 function stopVoice() {
@@ -1051,6 +1047,7 @@ function stopVoice() {
     try {
       currentVoiceAudio.pause();
       currentVoiceAudio.currentTime = 0;
+      currentVoiceAudio.removeAttribute('src');
     } catch(e) {}
     currentVoiceAudio = null;
   }
@@ -1147,7 +1144,7 @@ function splitTextIntoTTSChunks(text, maxLength = 120) {
 }
 
 function playGoogleTTS(text, lang) {
-  const chunks = splitTextIntoTTSChunks(text, 100);
+  const chunks = splitTextIntoTTSChunks(text, 160);
   let idx = 0;
 
   // Dùng trực tiếp phần tử Audio ở trang chính (không dùng iframe để không bị lỗi Autoplay trên thiết bị di động)
@@ -1155,6 +1152,7 @@ function playGoogleTTS(text, lang) {
   if (!audio) {
     audio = new Audio();
     audio.id = 'hpVoiceAudio';
+    audio.preload = 'auto';
     document.body.appendChild(audio);
   }
   audio.referrerPolicy = 'no-referrer';
@@ -1182,8 +1180,19 @@ function playGoogleTTS(text, lang) {
       console.warn('Google TTS lỗi chunk, thử máy chủ mirror:', err);
       const fallbackUrl = `https://translate.google.com.vn/translate_tts?ie=UTF-8&tl=${encodeURIComponent(langCode)}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
       audio.onerror = () => {
-        stopVoice();
-        showToast(currentLang === 'vi' ? 'Không thể tải âm thanh giọng nói, vui lòng kiểm tra mạng' : 'Audio stream failed, please check network', 'warn');
+        // Fallback sang Web Speech nếu mất kết nối mạng Internet hoàn toàn
+        console.warn('Google TTS không phản hồi, thử Web Speech API dự phòng...');
+        if ('speechSynthesis' in window) {
+          const utter = new SpeechSynthesisUtterance(chunk);
+          const langMap = { vi: 'vi-VN', en: 'en-US', ko: 'ko-KR', zh: 'zh-CN' };
+          utter.lang = langMap[lang] || 'vi-VN';
+          utter.onend = () => playNextChunk();
+          utter.onerror = () => stopVoice();
+          window.speechSynthesis.speak(utter);
+        } else {
+          stopVoice();
+          showToast(currentLang === 'vi' ? 'Không thể tải âm thanh giọng nói, vui lòng kiểm tra kết nối mạng' : 'Audio stream failed, please check network', 'warn');
+        }
       };
       audio.src = fallbackUrl;
       const retryPromise = audio.play();
@@ -1246,25 +1255,7 @@ function readVoice() {
   isVoiceSpeaking = true;
   updateVoiceUI(true);
 
-  const selectedVoice = document.getElementById('voiceSelect')?.value || 'female';
-
-  // 1. Nếu người dùng chủ động chọn 'google': Phát qua Google TTS
-  if (selectedVoice === 'google') {
-    playGoogleTTS(text, currentLang);
-    return;
-  }
-
-  // 2. Tìm kiếm giọng bản địa chuẩn trong Web Speech API (như Linh trên iOS, Google tiếng Việt trên Android, Hoài My/Nam Minh/An trên Windows)
-  const nativeVoice = findVoiceForLang(currentLang, selectedVoice);
-
-  if (nativeVoice) {
-    // Có giọng bản địa đúng ngôn ngữ -> Phát ngay bằng Web Speech (mượt mà, không phụ thuộc mạng, không bị chặn)
-    speakWithWebSpeech(text, nativeVoice);
-    return;
-  }
-
-  // 3. Nếu trong Web Speech KHÔNG CÓ giọng tiếng Việt chuẩn (tránh lỗi "verson tiếng Việt mà đọc tiếng Anh"):
-  // Chuyển sang Google TTS trực tuyến để phát âm tiếng Việt chuẩn 100%!
+  // Chỉ sử dụng duy nhất giọng Google AI Voice (Google TTS) chuẩn quốc tế
   playGoogleTTS(text, currentLang);
 }
 
