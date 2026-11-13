@@ -2509,37 +2509,247 @@ body {
 }
 
 /* ===================================================================
-   PRINT STYLES (A4 CLINICAL REPORT)
+   PRINT & PDF EXPORT STYLES (EXACT 1-PAGE A4 MEDICAL STANDARD)
    =================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 8mm 10mm 8mm 10mm;
+}
+
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-    padding: 0 !important;
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
-  .app-header, .bottom-bar, .no-print, .btn-main, .btn-voice, .page-title, .h-pill, .btn-header-sos, .toast-container {
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .app-header,
+  .bottom-bar,
+  .no-print,
+  .report-toolbar,
+  .btn-small,
+  .page-title,
+  .btn-main,
+  .btn-voice,
+  .h-pill,
+  .btn-header-sos,
+  .toast-container {
     display: none !important;
   }
+
   .main-content {
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
+
   .page-section {
     display: none !important;
   }
+
   #page_report {
     display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
+
   .report-paper {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    color: #000000 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Compact spacing for A4 single-page fit */
+  .rep-header {
+    padding-bottom: 0.35rem !important;
+    margin-bottom: 0.35rem !important;
+    border-bottom: 1.5px solid #cbd5e1 !important;
+  }
+
+  .rep-logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .rep-main-title {
+    font-size: 0.92rem !important;
+  }
+
+  .rep-sub-title {
+    font-size: 0.68rem !important;
+  }
+
+  .rep-badge-std {
+    font-size: 0.62rem !important;
+    padding: 0.12rem 0.4rem !important;
+  }
+
+  .rep-card {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 0.35rem 0.6rem !important;
+    margin-bottom: 0.35rem !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-card-header {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .rep-grid-2x2 {
+    gap: 0.3rem !important;
+  }
+
+  .rep-grid-cell {
+    padding: 0.25rem 0.45rem !important;
+    border: 1px solid #e2e8f0 !important;
     background: #ffffff !important;
   }
-  .rep-box {
+
+  .rep-cell-label {
+    font-size: 0.62rem !important;
+  }
+
+  .rep-cell-val {
+    font-size: 0.75rem !important;
+  }
+
+  .rep-input-source {
+    margin-top: 0.25rem !important;
+    padding: 0.2rem 0.45rem !important;
+    font-size: 0.68rem !important;
+    background: #ffffff !important;
+  }
+
+  .rep-risk-score-badge {
+    width: 48px !important;
+    height: 48px !important;
+    border-width: 2.5px !important;
+  }
+
+  .rep-risk-score-num {
+    font-size: 1.15rem !important;
+  }
+
+  .rep-risk-score-max {
+    font-size: 0.58rem !important;
+  }
+
+  .rep-risk-level-tag {
+    font-size: 0.68rem !important;
+    padding: 0.12rem 0.45rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .rep-risk-alert {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.2rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .rep-risk-breakdown {
+    gap: 0.3rem !important;
+    font-size: 0.64rem !important;
+  }
+
+  .rep-subheading {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .rep-table-wrap {
+    margin-bottom: 0.3rem !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-table th {
+    font-size: 0.64rem !important;
+    padding: 0.25rem 0.3rem !important;
+    background: #f1f5f9 !important;
+  }
+
+  .rep-table td {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.3rem !important;
+  }
+
+  .rep-badge {
+    font-size: 0.6rem !important;
+    padding: 0.08rem 0.3rem !important;
+  }
+
+  .rep-symptoms-section {
+    padding: 0.3rem 0.5rem !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-symptom-row {
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .rep-action-block {
+    padding: 0.35rem 0.6rem !important;
+    margin-bottom: 0.25rem !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-action-title {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .rep-action-desc {
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .rep-disclaimer-box {
+    margin-top: 0.35rem !important;
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.66rem !important;
+    line-height: 1.3 !important;
     background: #f8fafc !important;
+    border-left: 2.5px solid #64748b !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-sign-footer {
+    margin-top: 0.45rem !important;
+    padding-top: 0.35rem !important;
+    border-top: 1px dashed #cbd5e1 !important;
+    font-size: 0.7rem !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .rep-signature-space {
+    height: 22px !important;
   }
 }
 
