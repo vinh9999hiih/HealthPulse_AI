@@ -1590,129 +1590,221 @@ function renderReport() {
   const genderKey = S.patient.gender === 'Nữ' ? 'genderFemale' : S.patient.gender === 'Khác' ? 'genderOther' : 'genderMale';
 
   c.innerHTML = `
+    <!-- Header -->
     <div class="rep-header">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <img src="assets/logo_white_bg.png" alt="HealthPulse AI" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+      <div class="rep-brand-block">
+        <img src="assets/logo_white_bg.png" alt="HealthPulse AI" class="rep-logo">
         <div>
-          <h2 class="rep-main-title">${getTranslation('reportMainTitle')}</h2>
+          <div class="rep-main-title">${getTranslation('reportMainTitle')}</div>
           <div class="rep-sub-title">${getTranslation('reportSubTitle')}</div>
         </div>
       </div>
-      <div style="text-align:right;font-size:0.8rem;color:#64748b;">
-        <div>${getTranslation('reportStdBadge')}</div>
+      <div class="rep-meta-block">
+        <span class="rep-badge-std">${getTranslation('reportStdBadge')}</span>
+        <div class="rep-code">Mã: HP-${S.patient.id}</div>
       </div>
     </div>
 
-    <!-- 1. Thông tin báo cáo -->
-    <div class="rep-section">
-      <div class="rep-sec-title">${getTranslation('repSec1')}</div>
-      <ul class="rep-list">
-        <li><b>${getTranslation('repId')}</b> &nbsp;${S.patient.id}</li>
-        <li><b>${getTranslation('repTime')}</b> &nbsp;${formattedDate}</li>
-      </ul>
-    </div>
-
-    <!-- 2. Thông tin bệnh nhân -->
-    <div class="rep-section">
-      <div class="rep-sec-title">${getTranslation('repSec2')}</div>
-      <ul class="rep-list">
-        <li><b>${getTranslation('repName')}</b> &nbsp;${S.patient.name || 'Nguyễn Văn A'}</li>
-        <li><b>${getTranslation('repAge')}</b> &nbsp;${S.patient.age || 35}</li>
-        <li><b>${getTranslation('repGender')}</b> &nbsp;${getTranslation(genderKey)}</li>
-        <li><b>${getTranslation('repInputStatus')}</b> &nbsp;${inputStatus}</li>
-      </ul>
+    <!-- 1 & 2. Thông tin bệnh nhân & hồ sơ -->
+    <div class="rep-card">
+      <div class="rep-card-header">
+        <span class="rep-card-icon">👤</span>
+        <span>${getTranslation('repSecProfile') || getTranslation('repSec2')}</span>
+      </div>
+      <div class="rep-grid-2x2">
+        <div class="rep-grid-cell">
+          <span class="rep-cell-label">${getTranslation('repName').replace(':', '')}</span>
+          <span class="rep-cell-val">${S.patient.name || 'Lê Thị Hoàng Nghi'}</span>
+        </div>
+        <div class="rep-grid-cell">
+          <span class="rep-cell-label">${getTranslation('repAge').replace(':', '')} • ${getTranslation('repGender').replace(':', '')}</span>
+          <span class="rep-cell-val">${S.patient.age || 44} tuổi • ${getTranslation(genderKey)}</span>
+        </div>
+        <div class="rep-grid-cell">
+          <span class="rep-cell-label">${getTranslation('repId').replace(':', '')}</span>
+          <span class="rep-cell-val">#${S.patient.id}</span>
+        </div>
+        <div class="rep-grid-cell">
+          <span class="rep-cell-label">${getTranslation('repTime').replace(':', '')}</span>
+          <span class="rep-cell-val">${formattedDate}</span>
+        </div>
+      </div>
+      <div class="rep-input-source">
+        <span class="rep-cell-label">${getTranslation('repInputStatus').replace(':', '')}:</span>
+        <span class="rep-source-badge">${inputStatus}</span>
+      </div>
     </div>
 
     <!-- 3. Kết quả đánh giá nguy cơ -->
-    <div class="rep-section">
-      <div class="rep-sec-title">${getTranslation('repSec3')}</div>
-      <ul class="rep-list">
-        <li><b>${getTranslation('repScore')}</b> &nbsp;<span style="font-weight:800;color:${lc};font-size:1.1rem;">${r.score}</span> / 100</li>
-        <li><b>${getTranslation('repLevel')}</b> &nbsp;<span style="font-weight:700;color:${lc};">${r.levelName.toUpperCase()}</span></li>
-        <li><b>${getTranslation('repAIReview')}</b> &nbsp;${r.alertMessage} (S_vital = ${r.breakdown.sVital}, S_symptom = ${r.breakdown.sSymptomWeighted}).</li>
-      </ul>
-      <div class="rep-box ${boxClass}">
-        <div style="font-weight:700;color:${lc};margin-bottom:0.25rem;">${r.levelBadge} — ${r.levelName}</div>
-        <div style="font-size:0.85rem;">${r.alertMessage}</div>
+    <div class="rep-card rep-risk-card ${boxClass}">
+      <div class="rep-card-header">
+        <span class="rep-card-icon">🩺</span>
+        <span>${getTranslation('repSec3')}</span>
+      </div>
+      <div class="rep-risk-body">
+        <div class="rep-risk-score-badge" style="border-color:${lc};color:${lc};background:${r.level === 'red' ? 'rgba(220,38,38,0.1)' : r.level === 'yellow' ? 'rgba(217,119,6,0.1)' : 'rgba(5,150,105,0.1)'};">
+          <span class="rep-risk-score-num">${r.score}</span>
+          <span class="rep-risk-score-max">/ 100</span>
+        </div>
+        <div class="rep-risk-content">
+          <div class="rep-risk-level-tag" style="background:${lc};">
+            ${r.levelBadge} — ${r.levelName.toUpperCase()}
+          </div>
+          <div class="rep-risk-alert">${r.alertMessage}</div>
+          <div class="rep-risk-breakdown">
+            <span>S_vital: <b>${r.breakdown.sVital}</b></span>
+            <span>S_symptom: <b>${r.breakdown.sSymptomWeighted}</b></span>
+            <span>Hệ số D: <b>${r.breakdown.durationFactor}</b></span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- 4. Chi tiết dữ liệu đầu vào -->
-    <div class="rep-section">
-      <div class="rep-sec-title">${getTranslation('repSec4')}</div>
-      <ul class="rep-list">
-        <li><b>${getTranslation('repVitalsTableTitle')}</b></li>
-      </ul>
-      <table class="rep-table">
-        <thead>
-          <tr>
-            <th>${getTranslation('colMetric')}</th>
-            <th>${getTranslation('colValue')}</th>
-            <th>${getTranslation('colNormal')}</th>
-            <th>${getTranslation('colStatus')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>${getTranslation('tempLabel')} (T)</td>
-            <td><b>${S.temp.toFixed(1)} °C</b></td>
-            <td>36.5 – 37.4 °C</td>
-            <td>${S.temp >= 38.5 ? `[${getTranslation('heroStatusDanger')}] ${getTranslation('statFeverHigh')}` : S.temp >= 37.5 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statFeverMild')}` : getTranslation('statSafe')}</td>
-          </tr>
-          <tr>
-            <td>${getTranslation('spo2Label')}</td>
-            <td><b style="color:${S.spo2 < 93 ? '#dc2626' : '#059669'};">${S.estimated ? (r.breakdown.spo2Est ? '~' + r.breakdown.spo2Est + ' % (AI)' : '--') : S.spo2 + ' %'}</b></td>
-            <td>≥ 95 %</td>
-            <td>${S.spo2 < 93 ? `[${getTranslation('heroStatusDanger')}] ${getTranslation('statHypoxia')}` : S.spo2 <= 95 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statWarning')}` : getTranslation('statSafe')}</td>
-          </tr>
-          <tr>
-            <td>${getTranslation('heartRateLabel')} (HR)</td>
-            <td><b>${S.hr} BPM</b></td>
-            <td>60 – 99 BPM</td>
-            <td>${S.hr >= 110 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statHRFast')}` : S.hr < 55 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statHRSlow')}` : getTranslation('statSafe')}</td>
-          </tr>
-          <tr>
-            <td>${getTranslation('bpLabel')} (BP)</td>
-            <td><b>${S.sys} / ${S.dia} mmHg</b></td>
-            <td>110-129 / 70-84 mmHg</td>
-            <td>${S.sys >= 140 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statBPHigh')}` : S.sys < 90 ? `[${getTranslation('heroStatusWarning')}] ${getTranslation('statBPLow')}` : getTranslation('statSafe')}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="rep-card">
+      <div class="rep-card-header">
+        <span class="rep-card-icon">📊</span>
+        <span>${getTranslation('repSec4')}</span>
+      </div>
+      <div class="rep-subheading">${getTranslation('repVitalsTableTitle')}</div>
+      
+      <div class="rep-table-wrap">
+        <table class="rep-table">
+          <thead>
+            <tr>
+              <th style="width:26%;">${getTranslation('colMetric')}</th>
+              <th style="width:22%;">${getTranslation('colValue')}</th>
+              <th style="width:24%;">${getTranslation('colNormal')}</th>
+              <th style="width:28%;text-align:right;">${getTranslation('colStatus')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="td-metric">
+                  <span class="m-ico">🌡️</span>
+                  <span>${getTranslation('tempLabel')}</span>
+                </div>
+              </td>
+              <td class="td-val">${S.temp.toFixed(1)}°C</td>
+              <td class="td-ref">36.5–37.4°C</td>
+              <td class="td-status">
+                <span class="rep-badge ${S.temp >= 38.5 ? 'badge-danger' : S.temp >= 37.5 ? 'badge-warning' : 'badge-safe'}">
+                  ${S.temp >= 38.5 ? getTranslation('statFeverHigh') : S.temp >= 37.5 ? getTranslation('statFeverMild') : getTranslation('statSafe')}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="td-metric">
+                  <span class="m-ico">💨</span>
+                  <span>${getTranslation('spo2Label')}</span>
+                </div>
+              </td>
+              <td class="td-val" style="color:${S.spo2 < 93 ? '#dc2626' : 'inherit'};">
+                ${S.estimated ? (r.breakdown.spo2Est ? '~' + r.breakdown.spo2Est + '%' : '--') : S.spo2 + '%'}
+              </td>
+              <td class="td-ref">≥ 95%</td>
+              <td class="td-status">
+                <span class="rep-badge ${S.spo2 < 93 ? 'badge-danger' : S.spo2 <= 95 ? 'badge-warning' : 'badge-safe'}">
+                  ${S.spo2 < 93 ? getTranslation('statHypoxia') : S.spo2 <= 95 ? getTranslation('statWarning') : getTranslation('statSafe')}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="td-metric">
+                  <span class="m-ico">❤️</span>
+                  <span>${getTranslation('heartRateLabel')}</span>
+                </div>
+              </td>
+              <td class="td-val">${S.hr} BPM</td>
+              <td class="td-ref">60–99 BPM</td>
+              <td class="td-status">
+                <span class="rep-badge ${S.hr >= 110 || S.hr < 55 ? 'badge-warning' : 'badge-safe'}">
+                  ${S.hr >= 110 ? getTranslation('statHRFast') : S.hr < 55 ? getTranslation('statHRSlow') : getTranslation('statSafe')}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="td-metric">
+                  <span class="m-ico">🩺</span>
+                  <span>${getTranslation('bpLabel')}</span>
+                </div>
+              </td>
+              <td class="td-val">${S.sys}/${S.dia}</td>
+              <td class="td-ref">&lt; 130/85</td>
+              <td class="td-status">
+                <span class="rep-badge ${S.sys >= 140 || S.sys < 90 ? 'badge-warning' : 'badge-safe'}">
+                  ${S.sys >= 140 ? getTranslation('statBPHigh') : S.sys < 90 ? getTranslation('statBPLow') : getTranslation('statSafe')}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <ul class="rep-list" style="margin-top:0.6rem;">
-        <li><b>${getTranslation('repSymptomsListTitle')}</b></li>
-      </ul>
-      <ul class="rep-sublist">
-        <li>${getTranslation('repSymptomsSelected')} <b>${symptomsList}</b></li>
-        <li>${getTranslation('repDuration')} <b>${S.days} ${getTranslation('daysSuffix')}</b> (D = ${r.breakdown.durationFactor})</li>
-      </ul>
+      <!-- Symptoms & Duration -->
+      <div class="rep-symptoms-section">
+        <div class="rep-subheading" style="margin-bottom:0.4rem;">${getTranslation('repSymptomsListTitle')}</div>
+        <div class="rep-symptom-row">
+          <span class="rep-symptom-tag-label">${getTranslation('repSymptomsSelected').replace(':', '')}:</span>
+          <span class="rep-symptom-content"><b>${symptomsList}</b></span>
+        </div>
+        <div class="rep-symptom-row" style="margin-top:0.35rem;">
+          <span class="rep-symptom-tag-label">${getTranslation('repDuration').replace(':', '')}:</span>
+          <span class="rep-symptom-content"><b>${S.days} ${getTranslation('daysSuffix')}</b> <span class="rep-dim-text">(Hệ số D = ${r.breakdown.durationFactor})</span></span>
+        </div>
+      </div>
     </div>
 
     <!-- 5. Khuyến nghị & Hướng xử lý -->
-    <div class="rep-section">
-      <div class="rep-sec-title">${getTranslation('repSec5')}</div>
-      <ul class="rep-list">
-        <li><b>${getTranslation('repHomeCare')}</b> &nbsp;${r.recommendation}</li>
-        <li><b>${getTranslation('repHospitalWarn')}</b> &nbsp;${hospitalWarning}</li>
-      </ul>
+    <div class="rep-card">
+      <div class="rep-card-header">
+        <span class="rep-card-icon">📋</span>
+        <span>${getTranslation('repSec5')}</span>
+      </div>
+      
+      <div class="rep-action-block rep-action-home">
+        <div class="rep-action-title">
+          <span>🏠</span>
+          <span>${getTranslation('repHomeCare')}</span>
+        </div>
+        <p class="rep-action-desc">${r.recommendation}</p>
+      </div>
+
+      <div class="rep-action-block rep-action-hospital ${r.level === 'red' ? 'is-danger' : r.level === 'yellow' ? 'is-warning' : 'is-safe'}">
+        <div class="rep-action-title">
+          <span>🏥</span>
+          <span>${getTranslation('repHospitalWarn')}</span>
+        </div>
+        <p class="rep-action-desc">${hospitalWarning}</p>
+      </div>
     </div>
 
     <!-- 6. Lời miễn trừ trách nhiệm y khoa -->
-    <div class="rep-disclaimer">
-      <b>${getTranslation('repSec6')}</b><br>
-      "${getTranslation('disclaimerText')}"
+    <div class="rep-disclaimer-box">
+      <div class="rep-disclaimer-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        ${getTranslation('repSec6')}
+      </div>
+      <p class="rep-disclaimer-text">"${getTranslation('disclaimerText')}"</p>
     </div>
 
-    <div style="margin-top:25px;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end;font-size:0.82rem;color:#64748b;">
-      <div>
-        <b>${getTranslation('repSignSystem')}</b><br>
-        Mã xác thực: HP-${S.patient.id}-${Math.floor(1000 + Math.random() * 9000)}
+    <!-- Ký xác thực -->
+    <div class="rep-sign-footer">
+      <div class="rep-sign-col">
+        <span class="rep-sign-title">${getTranslation('repSignSystem')}</span>
+        <div class="rep-auth-code">
+          <span class="auth-label">MÃ XÁC THỰC BẢN IN:</span>
+          <code class="auth-hash">HP-${S.patient.id}-${Math.floor(1000 + Math.random() * 9000)}</code>
+        </div>
       </div>
-      <div style="text-align:center;">
-        <div>${getTranslation('repSignPatient')}</div>
-        <div style="height:35px;"></div>
-        <div><b>${S.patient.name || 'Người dùng'}</b></div>
+      <div class="rep-sign-col rep-sign-patient">
+        <span class="rep-sign-title">${getTranslation('repSignPatient')}</span>
+        <div class="rep-signature-space"></div>
+        <span class="rep-sign-name">${S.patient.name || 'Người dùng'}</span>
       </div>
     </div>
   `;
