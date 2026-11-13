@@ -4,17 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
-  <title>HealthPulse AI - Theo dõi & Cảnh báo sức khỏe</title>
-  <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn.">
+  <title>HealthPulse AI - Nền tảng Theo dõi & Cảnh báo Sức khỏe Cá nhân Thông minh</title>
+  <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe y tế cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn lâm sàng chuẩn A4.">
   <link rel="icon" type="image/png" href="assets/logo_white_bg.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/style.css?v=20261113_5">
+  <link rel="stylesheet" href="css/style.css?v=20261113_7">
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
+  <!-- Khung thông báo Toast nổi (Toast Notification System) -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- ===== APP HEADER (PREMIUM GLASSMORPHISM) ===== -->
   <header class="app-header">
     <div class="header-inner">
+      <!-- Brand Logo -->
       <div class="brand" onclick="switchTab('home')">
         <img src="assets/logo_white_bg.png" alt="HealthPulse AI" class="brand-img-logo">
         <div class="brand-text">
@@ -22,7 +26,39 @@
           <div class="brand-desc" data-i18n="appDesc">Theo dõi & Cảnh báo sức khỏe</div>
         </div>
       </div>
+
+      <!-- Desktop Navigation Menu (Hiện trên màn hình >= 840px) -->
+      <nav class="desktop-nav" id="desktopNav">
+        <button class="desktop-nav-item active" data-page="home" onclick="switchTab('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="navOverview">Tổng quan</span>
+        </button>
+        <button class="desktop-nav-item" data-page="checkin" onclick="switchTab('checkin')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <span data-i18n="navCheckin">Đo lường</span>
+        </button>
+        <button class="desktop-nav-item" data-page="detail" onclick="switchTab('detail')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span data-i18n="navDetail">Chi tiết</span>
+        </button>
+        <button class="desktop-nav-item" data-page="trends" onclick="switchTab('trends')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span data-i18n="navTrends">Xu hướng</span>
+        </button>
+        <button class="desktop-nav-item" data-page="report" onclick="switchTab('report')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span data-i18n="navReport">Báo cáo</span>
+        </button>
+      </nav>
+
+      <!-- Header Right Controls -->
       <div class="header-right">
+        <!-- Quick SOS Hotline Button -->
+        <button id="btnHeaderSOS" class="btn-header-sos" onclick="openSOS()" title="Cấp cứu y tế 115 khẩn cấp">
+          <span class="sos-pulse-dot"></span>
+          <span>SOS 115</span>
+        </button>
+
         <!-- Bộ chọn ngôn ngữ 4 thứ tiếng kèm CỜ QUỐC GIA -->
         <div class="lang-dropdown-container" id="langDropdownContainer">
           <button id="btnLangTrigger" class="btn-lang-trigger" onclick="toggleLangMenu()" aria-label="Chọn ngôn ngữ" aria-expanded="false">
@@ -71,429 +107,581 @@
             <option value="zh">ZH</option>
           </select>
         </div>
+
         <button id="btnElderly" class="h-pill btn-text-size" title="Phóng to cỡ chữ" data-i18n="btnElderly">A+</button>
         <button id="btnDarkMode" class="h-pill btn-icon-only" title="Đổi giao diện Sáng / Tối" aria-label="Giao diện">
-          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span class="icon-sun">☀️</span>
+          <span class="icon-moon">🌙</span>
         </button>
-        <button id="btnSOS" class="h-pill sos-pill" data-i18n="btnSOS">Cấp cứu 115</button>
       </div>
     </div>
   </header>
 
-  <!-- ===== NỘI DUNG CHÍNH ===== -->
+  <!-- ===== MAIN CONTENT CONTAINER ===== -->
   <main class="main-content">
 
-    <!-- ========== TRANG CHỦ ========== -->
+    <!-- ========== 1. TRANG TỔNG QUAN (HOME) ========== -->
     <section id="page_home" class="page-section active-page">
+      <div class="dash-grid-2col">
+        <!-- Cột 1: Chỉ huy sức khỏe Hero Card & Lời khuyên AI -->
+        <div class="dash-col">
+          <!-- Thẻ tổng quan sức khỏe cao cấp -->
+          <div id="statusHero" class="hero-card level-safe">
+            <div class="hero-header-row">
+              <span class="hero-top-label" data-i18n="heroTitle">Tình trạng sức khỏe hiện tại</span>
+              <div id="heroLevel" class="hero-level-badge">
+                <span class="badge-status-dot"></span>
+                <span id="heroLevelText">ỔN ĐỊNH</span>
+              </div>
+            </div>
 
-      <!-- Thẻ tổng quan sức khỏe -->
-      <div id="statusHero" class="hero-card level-safe">
-        <div class="hero-top-label" data-i18n="heroTitle">Tình trạng sức khỏe hiện tại</div>
-        <div id="heroLevel" class="hero-level-badge">ỔN ĐỊNH</div>
-        <div class="hero-score-row">
-          <span id="heroScore" class="hero-score">0</span>
-          <span class="hero-score-max" data-i18n="heroScoreMax">/ 100 điểm</span>
+            <div class="hero-body-flex">
+              <!-- Vòng tròn hiển thị điểm nguy cơ SVG -->
+              <div class="hero-gauge-wrap">
+                <svg class="hero-gauge-svg" viewBox="0 0 100 100">
+                  <circle class="hero-gauge-bg" cx="50" cy="50" r="42" fill="none" stroke-width="8"></circle>
+                  <circle id="heroScoreCircle" class="hero-gauge-fill" cx="50" cy="50" r="42" fill="none" stroke="var(--ok)" stroke-width="8" stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round"></circle>
+                </svg>
+                <div class="hero-gauge-center">
+                  <span id="heroScore" class="hero-score">0</span>
+                  <span class="hero-score-unit" data-i18n="ptsSuffix">điểm</span>
+                </div>
+              </div>
+
+              <div class="hero-info-text">
+                <p id="heroMessage" class="hero-message">Các chỉ số sinh hiệu nằm trong giới hạn bình thường. Hãy duy trì lối sống lành mạnh!</p>
+              </div>
+            </div>
+
+            <!-- Thanh điều khiển giọng nói AI Voice -->
+            <div class="voice-control-bar">
+              <button id="btnVoice" class="btn-voice" title="AI đọc kết quả bằng giọng nói">
+                <span id="voiceIcon" style="display:flex;align-items:center;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                </span>
+                <span class="waveform-visualizer" id="voiceWaveform" style="display:none;">
+                  <span class="waveform-bar"></span>
+                  <span class="waveform-bar"></span>
+                  <span class="waveform-bar"></span>
+                  <span class="waveform-bar"></span>
+                </span>
+                <span id="voiceBtnText" data-i18n="btnVoice">Nghe đọc kết quả (AI Voice)</span>
+              </button>
+              <div class="voice-select-wrap">
+                <label for="voiceSelect" class="voice-select-label" data-i18n="lblVoiceSelect">Giọng đọc:</label>
+                <select id="voiceSelect" class="voice-select" aria-label="Chọn giọng đọc">
+                  <option value="female" selected data-i18n="voiceFemale">Hoài My (Nữ truyền cảm - AI)</option>
+                  <option value="male" data-i18n="voiceMale">Nam Minh (Nam trầm ấm - Bác sĩ AI)</option>
+                  <option value="google" data-i18n="voiceGoogle">Google AI (Tự nhiên)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lời khuyên lâm sàng AI -->
+          <div class="section-card">
+            <div class="sec-header"><span data-i18n="homeAdviceTitle">Khuyến nghị lâm sàng từ AI</span></div>
+            <div class="advice-block green-left">
+              <strong data-i18n="adviceLabel">Khuyến cáo:</strong>
+              <p id="homeAdvice">Sức khỏe ổn định, duy trì chế độ ăn uống cân đối, ngủ đủ giấc 7-8 tiếng và uống đủ nước.</p>
+            </div>
+            <div class="advice-block blue-left" style="margin-top: 0.75rem;">
+              <strong data-i18n="scheduleLabel">Lịch theo dõi:</strong>
+              <p id="homeSchedule">Ghi nhận nhật ký sức khỏe đều đặn mỗi sáng và tối.</p>
+            </div>
+          </div>
+
+          <!-- Kế hoạch theo dõi trong ngày -->
+          <div class="section-card">
+            <div class="sec-header">
+              <span>Kế hoạch chăm sóc trong ngày</span>
+              <span class="link-btn" onclick="resetDailyPlan()">Đặt lại</span>
+            </div>
+            <div class="care-plan-list">
+              <div class="care-item" onclick="toggleCareItem(this)">
+                <div class="care-checkbox">✓</div>
+                <span class="care-text">Đo nhiệt độ & huyết áp buổi sáng khi nghỉ ngơi</span>
+                <span class="care-time-badge">07:00</span>
+              </div>
+              <div class="care-item" onclick="toggleCareItem(this)">
+                <div class="care-checkbox">✓</div>
+                <span class="care-text">Uống đủ 500ml nước ấm sau khi thức dậy</span>
+                <span class="care-time-badge">07:30</span>
+              </div>
+              <div class="care-item" onclick="toggleCareItem(this)">
+                <div class="care-checkbox">✓</div>
+                <span class="care-text">Kiểm tra SpO2 và đếm nhịp mạch sau bữa trưa</span>
+                <span class="care-time-badge">12:30</span>
+              </div>
+              <div class="care-item" onclick="toggleCareItem(this)">
+                <div class="care-checkbox">✓</div>
+                <span class="care-text">Đo huyết áp và ghi nhận triệu chứng trước khi ngủ</span>
+                <span class="care-time-badge">21:00</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <p id="heroMessage" class="hero-message">Các chỉ số sinh hiệu nằm trong giới hạn bình thường. Hãy duy trì lối sống lành mạnh!</p>
-        <div class="voice-control-bar">
-          <button id="btnVoice" class="btn-voice" title="AI đọc kết quả bằng giọng nói">
-            <span id="voiceIcon" style="display:flex;align-items:center;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            </span>
-            <span id="voiceBtnText" data-i18n="btnVoice">Nghe đọc kết quả (AI Voice)</span>
+
+        <!-- Cột 2: Thao tác nhanh & 4 Thẻ sinh hiệu tóm tắt -->
+        <div class="dash-col">
+          <!-- 4 Thao tác nhanh (Quick Actions Grid) -->
+          <div class="quick-actions-grid">
+            <div class="qa-card" onclick="switchTab('checkin')">
+              <div class="qa-icon-wrap qa-blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </div>
+              <div class="qa-text-wrap">
+                <span class="qa-title">Đo sinh hiệu</span>
+                <span class="qa-desc">Nhập chỉ số mới</span>
+              </div>
+            </div>
+
+            <div class="qa-card" onclick="openTapModal()">
+              <div class="qa-icon-wrap qa-emerald">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div class="qa-text-wrap">
+                <span class="qa-title">Bắt mạch 15s</span>
+                <span class="qa-desc">Đồng hồ đếm nhịp</span>
+              </div>
+            </div>
+
+            <div class="qa-card" onclick="switchTab('trends')">
+              <div class="qa-icon-wrap qa-purple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="qa-text-wrap">
+                <span class="qa-title">Xu hướng</span>
+                <span class="qa-desc">Biểu đồ sinh hiệu</span>
+              </div>
+            </div>
+
+            <div class="qa-card" onclick="switchTab('report')">
+              <div class="qa-icon-wrap qa-cyan">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div class="qa-text-wrap">
+                <span class="qa-title">Báo cáo PDF</span>
+                <span class="qa-desc">Xuất hồ sơ y tế</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Thẻ sinh hiệu tóm tắt nhanh -->
+          <div class="metric-cards-row">
+            <div id="mTemp" class="metric-card mc-ok">
+              <div class="mc-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+              </div>
+              <div class="mc-label" data-i18n="tempLabel">Thân nhiệt</div>
+              <div id="mTempVal" class="mc-value">--</div>
+              <div id="mTempStat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
+            </div>
+            <div id="mSpO2" class="metric-card mc-ok">
+              <div class="mc-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v4m-5 4c-2 0-3 1.5-3 4a4 4 0 0 0 4 4h3V8H7c-1 0-2 .5-2 2zm10 0c2 0 3 1.5 3 4a4 4 0 0 1-4 4h-3V8h4c1 0 2 .5 2 2z"/></svg>
+              </div>
+              <div class="mc-label" data-i18n="spo2Label">Oxy SpO2</div>
+              <div id="mSpO2Val" class="mc-value">--</div>
+              <div id="mSpO2Stat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
+            </div>
+            <div id="mHR" class="metric-card mc-ok">
+              <div class="mc-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div class="mc-label" data-i18n="heartRateLabel">Nhịp tim</div>
+              <div id="mHRVal" class="mc-value">--</div>
+              <div id="mHRStat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
+            </div>
+            <div id="mBP" class="metric-card mc-ok">
+              <div class="mc-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/><path d="M12 3v2m0 14v2m-9-9h2m14 0h2"/></svg>
+              </div>
+              <div class="mc-label" data-i18n="bpLabel">Huyết áp</div>
+              <div id="mBPVal" class="mc-value">120/80</div>
+              <div id="mBPStat" class="mc-status" data-i18n="statSafe">Ổn định</div>
+            </div>
+          </div>
+
+          <!-- Triệu chứng đang ghi nhận -->
+          <div class="section-card">
+            <div class="sec-header">
+              <span data-i18n="homeSymptomsTitle">Triệu chứng đã ghi nhận</span>
+              <span class="link-btn" onclick="switchTab('checkin')" data-i18n="editArrow">Chỉnh sửa →</span>
+            </div>
+            <p id="homeSymptomsText" class="home-symptoms-text" data-i18n="homeNoSymptoms">Chưa ghi nhận triệu chứng nào. Bấm "Đo lường" để bắt đầu kiểm tra.</p>
+          </div>
+
+          <!-- Nút ghi chỉ số to -->
+          <button class="btn-main" onclick="switchTab('checkin')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            <span data-i18n="btnLogToday">GHI NHẬN CHỈ SỐ HÔM NAY</span>
           </button>
-          <div class="voice-select-wrap">
-            <label for="voiceSelect" class="voice-select-label" data-i18n="lblVoiceSelect">Giọng đọc:</label>
-            <select id="voiceSelect" class="voice-select" aria-label="Chọn giọng đọc">
-              <option value="female" selected data-i18n="voiceFemale">Hoài My (Nữ truyền cảm - AI)</option>
-              <option value="male" data-i18n="voiceMale">Nam Minh (Nam trầm ấm - Bác sĩ AI)</option>
-              <option value="google" data-i18n="voiceGoogle">Google AI (Tự nhiên)</option>
-            </select>
-          </div>
         </div>
       </div>
-
-      <!-- 4 thẻ sinh hiệu tóm tắt nhanh -->
-      <div class="metric-cards-row">
-        <div id="mTemp" class="metric-card mc-ok">
-          <div class="mc-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-          </div>
-          <div class="mc-label" data-i18n="tempLabel">Thân nhiệt</div>
-          <div id="mTempVal" class="mc-value">--</div>
-          <div id="mTempStat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
-        </div>
-        <div id="mSpO2" class="metric-card mc-ok">
-          <div class="mc-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v4m-5 4c-2 0-3 1.5-3 4a4 4 0 0 0 4 4h3V8H7c-1 0-2 .5-2 2zm10 0c2 0 3 1.5 3 4a4 4 0 0 1-4 4h-3V8h4c1 0 2 .5 2 2z"/></svg>
-          </div>
-          <div class="mc-label" data-i18n="spo2Label">Oxy SpO2</div>
-          <div id="mSpO2Val" class="mc-value">--</div>
-          <div id="mSpO2Stat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
-        </div>
-        <div id="mHR" class="metric-card mc-ok">
-          <div class="mc-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          </div>
-          <div class="mc-label" data-i18n="heartRateLabel">Nhịp tim</div>
-          <div id="mHRVal" class="mc-value">--</div>
-          <div id="mHRStat" class="mc-status" data-i18n="statNotMeasured">Chưa đo</div>
-        </div>
-        <div id="mBP" class="metric-card mc-ok">
-          <div class="mc-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/><path d="M12 3v2m0 14v2m-9-9h2m14 0h2"/></svg>
-          </div>
-          <div class="mc-label" data-i18n="bpLabel">Huyết áp</div>
-          <div id="mBPVal" class="mc-value">120/80</div>
-          <div id="mBPStat" class="mc-status" data-i18n="statSafe">Ổn định</div>
-        </div>
-      </div>
-
-      <!-- Triệu chứng đang ghi nhận -->
-      <div class="section-card">
-        <div class="sec-header">
-          <span data-i18n="homeSymptomsTitle">Triệu chứng đã ghi nhận</span>
-          <span class="link-btn" onclick="switchTab('checkin')" data-i18n="editArrow">Chỉnh sửa →</span>
-        </div>
-        <p id="homeSymptomsText" class="home-symptoms-text" data-i18n="homeNoSymptoms">Chưa ghi nhận triệu chứng nào. Bấm "Đo lường" để bắt đầu.</p>
-      </div>
-
-      <!-- Lời khuyên AI -->
-      <div class="section-card">
-        <div class="sec-header"><span data-i18n="homeAdviceTitle">Khuyến nghị lâm sàng từ AI</span></div>
-        <div class="advice-block green-left">
-          <strong data-i18n="adviceLabel">Khuyến cáo:</strong>
-          <p id="homeAdvice">Sức khỏe ổn định, duy trì chế độ ăn uống cân đối, ngủ đủ giấc 7-8 tiếng và uống đủ nước.</p>
-        </div>
-        <div class="advice-block blue-left" style="margin-top: 0.75rem;">
-          <strong data-i18n="scheduleLabel">Lịch theo dõi:</strong>
-          <p id="homeSchedule">Ghi nhận nhật ký sức khỏe đều đặn mỗi sáng và tối.</p>
-        </div>
-      </div>
-
-      <!-- Nút ghi chỉ số -->
-      <button class="btn-main" onclick="switchTab('checkin')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        <span data-i18n="btnLogToday">GHI NHẬN CHỈ SỐ HÔM NAY</span>
-      </button>
     </section>
 
-    <!-- ========== TRANG GHI CHỈ SỐ / ĐO LƯỜNG (REDESIGNED) ========== -->
+    <!-- ========== 2. TRANG ĐO LƯỜNG & GHI CHỈ SỐ (CHECK-IN) ========== -->
     <section id="page_checkin" class="page-section">
-
       <h2 class="page-title" data-i18n="checkinTitle">Ghi nhận chỉ số sức khỏe</h2>
 
-      <!-- 1. THẺ THÔNG TIN NGƯỜI ĐO GỌN GÀNG -->
-      <div class="patient-compact-card">
-        <div class="patient-compact-left">
-          <div class="patient-avatar-badge">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div class="patient-meta">
-            <div class="patient-name-row">
-              <span id="dispPatientSummaryName" class="patient-name-txt">Nguyễn Văn A</span>
-              <span class="patient-id-badge" id="dispPatientIdBadge">Mã: 0428</span>
+      <div class="dash-grid-2col">
+        <!-- Cột 1: Thông tin người đo & 4 Thẻ sinh hiệu thông minh -->
+        <div class="dash-col">
+          <!-- 1. Thẻ thông tin người đo gọn gàng -->
+          <div class="patient-compact-card">
+            <div class="patient-compact-left">
+              <div class="patient-avatar-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="patient-meta">
+                <div class="patient-name-row">
+                  <span id="dispPatientSummaryName" class="patient-name-txt">Nguyễn Văn A</span>
+                  <span class="patient-id-badge" id="dispPatientIdBadge">Mã: 0428</span>
+                </div>
+                <div id="dispPatientSummaryMeta" class="patient-sub-txt">35 tuổi • Nam</div>
+              </div>
             </div>
-            <div id="dispPatientSummaryMeta" class="patient-sub-txt">35 tuổi • Nam</div>
-          </div>
-        </div>
-        <button type="button" class="btn-patient-edit" id="btnToggleEditPatient" onclick="toggleEditPatient()">
-          <span id="txtEditPatient" data-i18n="btnEditPatient">Chỉnh sửa</span>
-        </button>
-      </div>
-
-      <!-- Panel chỉnh sửa gập mở -->
-      <div id="patientEditDrawer" class="patient-edit-drawer" style="display:none;">
-        <div class="patient-inputs-grid">
-          <div class="inp-group">
-            <label data-i18n="lblFullName">Họ và tên</label>
-            <input type="text" id="inpPatientName" value="Nguyễn Văn A" placeholder="Nhập họ tên..." oninput="onPatientChange()">
-          </div>
-          <div class="inp-group">
-            <label data-i18n="lblAge">Tuổi</label>
-            <input type="number" id="inpPatientAge" value="35" min="1" max="120" oninput="onPatientChange()">
-          </div>
-          <div class="inp-group">
-            <label data-i18n="lblGender">Giới tính</label>
-            <select id="inpPatientGender" onchange="onPatientChange()">
-              <option value="Nam" data-i18n="genderMale">Nam</option>
-              <option value="Nữ" data-i18n="genderFemale">Nữ</option>
-              <option value="Khác" data-i18n="genderOther">Khác</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. BẢNG 4 THẺ SINH HIỆU THÔNG MINH (SMART VITALS GRID) -->
-      <div class="sec-label-row">
-        <div style="display:inline-flex;align-items:center;gap:0.45rem;">
-          <span class="sec-label-title" data-i18n="vitalsSecTitle">Bảng chỉ số sinh hiệu (Vitals)</span>
-          <span id="vitalsLockBadge" class="vitals-lock-badge" style="display:none;" data-i18n="vitalsLockedBadge">🔒 Đang tạm khóa</span>
-        </div>
-        <span class="sec-label-hint" id="vitalsSecHint" data-i18n="vitalsSecHint">Chạm nút + / − hoặc nhập giá trị đo được</span>
-      </div>
-
-      <div id="vitalsLockBanner" class="vitals-lock-banner" style="display:none;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span data-i18n="vitalsLockBannerMsg">Bảng đo trực tiếp đang tạm khóa — Hệ thống đang sử dụng dữ liệu từ Chế độ Ước lượng lâm sàng bên dưới.</span>
-      </div>
-
-      <div class="vitals-smart-grid" id="vitalsSmartGrid">
-        <!-- 1. Thân nhiệt -->
-        <div class="vital-smart-card" id="cardTemp">
-          <div class="v-card-header">
-            <div class="v-card-name"><span data-i18n="tempLabel">Thân nhiệt</span></div>
-            <span class="v-status-badge status-ok" id="badgeTemp">36.5 °C</span>
-          </div>
-          <div class="v-card-body">
-            <div class="v-num-box">
-              <span id="dispTemp" class="v-num-val">36.5</span>
-              <span class="v-unit">°C</span>
-            </div>
-            <div class="v-stepper-btns">
-              <button class="v-btn" onclick="stepVal('temp',-0.1)" aria-label="Giảm thân nhiệt">−</button>
-              <button class="v-btn" onclick="stepVal('temp',0.1)" aria-label="Tăng thân nhiệt">+</button>
-            </div>
-          </div>
-          <div class="v-card-footer" data-i18n="tempHint">Bình thường: 36.5 – 37.4 °C</div>
-        </div>
-
-        <!-- 2. Oxy SpO2 -->
-        <div class="vital-smart-card" id="cardSpO2">
-          <div class="v-card-header">
-            <div class="v-card-name"><span data-i18n="spo2Label">Oxy SpO2</span></div>
-            <span class="v-status-badge status-ok" id="badgeSpO2">98 %</span>
-          </div>
-          <div class="v-card-body">
-            <div class="v-num-box">
-              <span id="dispSpO2" class="v-num-val">98</span>
-              <span class="v-unit">%</span>
-            </div>
-            <div class="v-stepper-btns">
-              <button class="v-btn" onclick="stepVal('spo2',-1)" aria-label="Giảm SpO2">−</button>
-              <button class="v-btn" onclick="stepVal('spo2',1)" aria-label="Tăng SpO2">+</button>
-            </div>
-          </div>
-          <div class="v-card-footer" data-i18n="spo2Hint">Dưới 93% → Cấp cứu ngay</div>
-        </div>
-
-        <!-- 3. Nhịp tim -->
-        <div class="vital-smart-card" id="cardHR">
-          <div class="v-card-header">
-            <div class="v-card-name"><span data-i18n="heartRateLabel">Nhịp tim</span></div>
-            <span class="v-status-badge status-ok" id="badgeHR">75 BPM</span>
-          </div>
-          <div class="v-card-body">
-            <div class="v-num-box">
-              <span id="dispHR" class="v-num-val">75</span>
-              <span class="v-unit">BPM</span>
-            </div>
-            <div class="v-stepper-btns">
-              <button class="v-btn" onclick="stepVal('hr',-1)" aria-label="Giảm nhịp tim">−</button>
-              <button class="v-btn" onclick="stepVal('hr',1)" aria-label="Tăng nhịp tim">+</button>
-            </div>
-          </div>
-          <div class="v-card-footer tap-footer">
-            <button type="button" class="btn-quick-tap" onclick="openTapModal()">
-              <span data-i18n="btnTapPulse">Đo nhịp tim thủ công</span>
+            <button type="button" class="btn-patient-edit" id="btnToggleEditPatient" onclick="toggleEditPatient()">
+              <span id="txtEditPatient" data-i18n="btnEditPatient">Chỉnh sửa</span>
             </button>
           </div>
-        </div>
 
-        <!-- 4. Huyết áp (Hỗ trợ chỉnh cả Tâm thu và Tâm trương) -->
-        <div class="vital-smart-card card-bp-smart" id="cardBP">
-          <div class="v-card-header">
-            <div class="v-card-name"><span data-i18n="bpLabel">Huyết áp</span></div>
-            <span class="v-status-badge status-ok" id="badgeBP">120/80</span>
-          </div>
-          <!-- Giữ phần tử ẩn để đồng bộ tương thích -->
-          <span id="dispBP" style="display:none;">120/80</span>
-
-          <div class="bp-dual-container">
-            <!-- Hàng 1: Tâm thu (Systolic - Số trên) -->
-            <div class="bp-control-row">
-              <div class="bp-label-group">
-                <span class="bp-name" data-i18n="lblSystolic">Tâm thu</span>
-                <span class="bp-subname" data-i18n="lblSysSub">(Số trên)</span>
+          <!-- Drawer chỉnh sửa thông tin bệnh nhân -->
+          <div id="patientEditDrawer" class="patient-edit-drawer" style="display:none;">
+            <div class="patient-inputs-grid">
+              <div class="p-field">
+                <label data-i18n="lblFullName">Họ và tên:</label>
+                <input type="text" id="inpPatientName" class="p-inp" value="Nguyễn Văn A" oninput="onPatientChange()">
               </div>
-              <div class="bp-val-wrap">
-                <span id="dispSys" class="bp-val-num">120</span>
-                <span class="bp-val-unit">mmHg</span>
+              <div class="p-field">
+                <label data-i18n="lblAge">Tuổi:</label>
+                <input type="number" id="inpPatientAge" class="p-inp" value="35" min="1" max="120" oninput="onPatientChange()">
               </div>
-              <div class="bp-btn-stepper">
-                <button type="button" class="bp-mini-btn" onclick="stepVal('sys',-1)" aria-label="Giảm tâm thu">−</button>
-                <button type="button" class="bp-mini-btn" onclick="stepVal('sys',1)" aria-label="Tăng tâm thu">+</button>
-              </div>
-            </div>
-
-            <!-- Hàng 2: Tâm trương (Diastolic - Số dưới) -->
-            <div class="bp-control-row">
-              <div class="bp-label-group">
-                <span class="bp-name" data-i18n="lblDiastolic">Tâm trương</span>
-                <span class="bp-subname" data-i18n="lblDiaSub">(Số dưới)</span>
-              </div>
-              <div class="bp-val-wrap">
-                <span id="dispDia" class="bp-val-num">80</span>
-                <span class="bp-val-unit">mmHg</span>
-              </div>
-              <div class="bp-btn-stepper">
-                <button type="button" class="bp-mini-btn" onclick="stepVal('dia',-1)" aria-label="Giảm tâm trương">−</button>
-                <button type="button" class="bp-mini-btn" onclick="stepVal('dia',1)" aria-label="Tăng tâm trương">+</button>
+              <div class="p-field">
+                <label data-i18n="lblGender">Giới tính:</label>
+                <select id="inpPatientGender" class="p-inp" onchange="onPatientChange()">
+                  <option value="Nam" data-i18n="genderMale">Nam</option>
+                  <option value="Nữ" data-i18n="genderFemale">Nữ</option>
+                  <option value="Khác" data-i18n="genderOther">Khác</option>
+                </select>
               </div>
             </div>
           </div>
-          <div class="v-card-footer" data-i18n="bpHint">Bình thường: 120 / 80 mmHg</div>
-        </div>
-      </div>
 
-      <!-- 3. TÙY CHỌN ƯỚC TÍNH AI KHI THIẾU THIẾT BỊ -->
-      <div class="est-mode-toggle-card">
-        <div class="est-mode-header" onclick="toggleEstMode()">
-          <div class="est-header-text">
+          <!-- 2. Bảng chỉ số sinh hiệu (Vitals Smart Grid) -->
+          <div class="sec-label-row">
             <div>
-              <div class="est-title" data-i18n="modeNoDeviceTitle">Không có dụng cụ đo? Bật ước tính lâm sàng & Hướng dẫn AI</div>
-              <div class="est-subtitle" data-i18n="modeNoDeviceSub">Bao gồm ước tính triệu chứng và hướng dẫn đo mạch đập cổ tay</div>
+              <span class="sec-label-title" data-i18n="vitalsSecTitle">Bảng chỉ số sinh hiệu (Vitals)</span>
+              <span id="vitalsLockBadge" class="vitals-lock-badge" style="display:none;" data-i18n="vitalsLockedBadge">🔒 Đang tạm khóa</span>
+            </div>
+            <span class="sec-label-hint" id="vitalsSecHint" data-i18n="vitalsSecHint">Chạm nút + / − hoặc nhập giá trị đo được</span>
+          </div>
+
+          <div id="vitalsLockBanner" class="vitals-lock-banner" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span data-i18n="vitalsLockBannerMsg">Bảng đo trực tiếp đang tạm khóa — Hệ thống đang sử dụng dữ liệu từ Chế độ Ước lượng lâm sàng bên dưới.</span>
+          </div>
+
+          <div class="vitals-smart-grid" id="vitalsSmartGrid">
+            <!-- 1. Thân nhiệt -->
+            <div class="vital-smart-card" id="cardTemp">
+              <div class="v-card-header">
+                <div class="v-card-name"><span data-i18n="tempLabel">Thân nhiệt</span></div>
+                <span class="v-status-badge status-ok" id="badgeTemp">36.5 °C</span>
+              </div>
+              <div class="v-card-body">
+                <div class="v-num-box">
+                  <span id="dispTemp" class="v-num-val">36.5</span>
+                  <span class="v-unit">°C</span>
+                </div>
+                <div class="v-stepper-btns">
+                  <button class="v-btn" onclick="stepVal('temp',-0.1)" aria-label="Giảm thân nhiệt">−</button>
+                  <button class="v-btn" onclick="stepVal('temp',0.1)" aria-label="Tăng thân nhiệt">+</button>
+                </div>
+              </div>
+              <div class="v-card-footer" data-i18n="tempHint">Bình thường: 36.5 – 37.4 °C</div>
+            </div>
+
+            <!-- 2. Oxy SpO2 -->
+            <div class="vital-smart-card" id="cardSpO2">
+              <div class="v-card-header">
+                <div class="v-card-name"><span data-i18n="spo2Label">Oxy SpO2</span></div>
+                <span class="v-status-badge status-ok" id="badgeSpO2">98 %</span>
+              </div>
+              <div class="v-card-body">
+                <div class="v-num-box">
+                  <span id="dispSpO2" class="v-num-val">98</span>
+                  <span class="v-unit">%</span>
+                </div>
+                <div class="v-stepper-btns">
+                  <button class="v-btn" onclick="stepVal('spo2',-1)" aria-label="Giảm SpO2">−</button>
+                  <button class="v-btn" onclick="stepVal('spo2',1)" aria-label="Tăng SpO2">+</button>
+                </div>
+              </div>
+              <div class="v-card-footer" data-i18n="spo2Hint">Dưới 93% → Cấp cứu ngay</div>
+            </div>
+
+            <!-- 3. Nhịp tim -->
+            <div class="vital-smart-card" id="cardHR">
+              <div class="v-card-header">
+                <div class="v-card-name"><span data-i18n="heartRateLabel">Nhịp tim</span></div>
+                <span class="v-status-badge status-ok" id="badgeHR">75 BPM</span>
+              </div>
+              <div class="v-card-body">
+                <div class="v-num-box">
+                  <span id="dispHR" class="v-num-val">75</span>
+                  <span class="v-unit">BPM</span>
+                </div>
+                <div class="v-stepper-btns">
+                  <button class="v-btn" onclick="stepVal('hr',-1)" aria-label="Giảm nhịp tim">−</button>
+                  <button class="v-btn" onclick="stepVal('hr',1)" aria-label="Tăng nhịp tim">+</button>
+                </div>
+              </div>
+              <div class="v-card-footer tap-footer">
+                <button type="button" class="btn-quick-tap" onclick="openTapModal()">
+                  <span data-i18n="btnTapPulse">Đo nhịp tim 15 giây</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Huyết áp (Hỗ trợ chỉnh độc lập cả Tâm thu và Tâm trương delta=1) -->
+            <div class="vital-smart-card card-bp-smart" id="cardBP">
+              <div class="v-card-header">
+                <div class="v-card-name"><span data-i18n="bpLabel">Huyết áp</span></div>
+                <span class="v-status-badge status-ok" id="badgeBP">120/80</span>
+              </div>
+              <span id="dispBP" style="display:none;">120/80</span>
+
+              <div class="bp-dual-container">
+                <!-- Hàng 1: Tâm thu (Systolic - Số trên) -->
+                <div class="bp-control-row">
+                  <div class="bp-label-group">
+                    <span class="bp-name" data-i18n="lblSystolic">Tâm thu</span>
+                    <span class="bp-subname" data-i18n="lblSysSub">(Số trên)</span>
+                  </div>
+                  <div class="bp-val-wrap">
+                    <span id="dispSys" class="bp-val-num">120</span>
+                    <span class="bp-val-unit">mmHg</span>
+                  </div>
+                  <div class="bp-btn-stepper">
+                    <button type="button" class="bp-mini-btn" onclick="stepVal('sys',-1)" aria-label="Giảm tâm thu">−</button>
+                    <button type="button" class="bp-mini-btn" onclick="stepVal('sys',1)" aria-label="Tăng tâm thu">+</button>
+                  </div>
+                </div>
+
+                <!-- Hàng 2: Tâm trương (Diastolic - Số dưới) -->
+                <div class="bp-control-row">
+                  <div class="bp-label-group">
+                    <span class="bp-name" data-i18n="lblDiastolic">Tâm trương</span>
+                    <span class="bp-subname" data-i18n="lblDiaSub">(Số dưới)</span>
+                  </div>
+                  <div class="bp-val-wrap">
+                    <span id="dispDia" class="bp-val-num">80</span>
+                    <span class="bp-val-unit">mmHg</span>
+                  </div>
+                  <div class="bp-btn-stepper">
+                    <button type="button" class="bp-mini-btn" onclick="stepVal('dia',-1)" aria-label="Giảm tâm trương">−</button>
+                    <button type="button" class="bp-mini-btn" onclick="stepVal('dia',1)" aria-label="Tăng tâm trương">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="v-card-footer" data-i18n="bpHint">Bình thường: 120 / 80 mmHg</div>
             </div>
           </div>
-          <div class="switch-ui" id="switchEstUI">
-            <div class="switch-handle"></div>
+
+          <!-- 3. Chế độ Ước tính AI khi thiếu thiết bị -->
+          <div class="est-mode-toggle-card">
+            <div class="est-mode-header" onclick="toggleEstMode()">
+              <div class="est-header-text">
+                <div>
+                  <div class="est-title" data-i18n="modeNoDeviceTitle">Không có dụng cụ đo? Bật ước tính lâm sàng & Hướng dẫn AI</div>
+                  <div class="est-subtitle" data-i18n="modeNoDeviceSub">Bao gồm ước tính triệu chứng và hướng dẫn đo mạch đập cổ tay</div>
+                </div>
+              </div>
+              <div class="switch-ui" id="switchEstUI">
+                <div class="switch-handle"></div>
+              </div>
+            </div>
+
+            <div id="secNoDevice" class="est-drawer" style="display:none;">
+              <div class="est-group">
+                <div class="est-q" data-i18n="estQ1">1. Bạn cảm thấy thân nhiệt thế nào?</div>
+                <div class="est-pills-row">
+                  <button class="est-pill" data-g="estTemp" data-v="normal" onclick="pickEst(this)" data-i18n="estTemp1">Bình thường, không sốt</button>
+                  <button class="est-pill active" data-g="estTemp" data-v="fever_mild" onclick="pickEst(this)" data-i18n="estTemp2">Nóng nhẹ, hơi mệt</button>
+                  <button class="est-pill" data-g="estTemp" data-v="fever_high" onclick="pickEst(this)" data-i18n="estTemp3">Nóng ran, ớn lạnh, vã mồ hôi</button>
+                </div>
+              </div>
+
+              <div class="est-group">
+                <div class="est-q" data-i18n="estQ2">2. Tình trạng hô hấp / nhịp thở?</div>
+                <div class="est-pills-row">
+                  <button class="est-pill active" data-g="estBreathing" data-v="normal" onclick="pickEst(this)" data-i18n="estBreath1">Thở đều, bình thường</button>
+                  <button class="est-pill" data-g="estBreathing" data-v="short_effort" onclick="pickEst(this)" data-i18n="estBreath2">Hụt hơi khi leo cầu thang</button>
+                  <button class="est-pill" data-g="estBreathing" data-v="short_severe" onclick="pickEst(this)" data-i18n="estBreath3">Khó thở nhiều khi ngồi yên (Cấp tính)</button>
+                </div>
+              </div>
+
+              <!-- Hướng dẫn đo mạch cổ tay chuẩn y khoa -->
+              <div class="pulse-guide-card">
+                <div class="pulse-guide-header">
+                  <div class="pulse-guide-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <span class="pulse-guide-title" data-i18n="pulseGuideTitle">Hướng dẫn đo mạch đập cổ tay (Bắt mạch quay)</span>
+                </div>
+                <div class="pulse-guide-steps">
+                  <div class="p-step-item">
+                    <span class="p-step-num">1</span>
+                    <span data-i18n="pulseStep1">Đặt 2 ngón tay (ngón trỏ và ngón giữa) lên mặt trong cổ tay, ngay phía dưới gốc ngón tay cái.</span>
+                  </div>
+                  <div class="p-step-item">
+                    <span class="p-step-num">2</span>
+                    <span data-i18n="pulseStep2">Ấn nhẹ cho đến khi cảm nhận rõ từng nhịp đập rộn ràng (không dùng ngón cái vì ngón cái có mạch riêng).</span>
+                  </div>
+                  <div class="p-step-item">
+                    <span class="p-step-num">3</span>
+                    <span data-i18n="pulseStep3">Bấm nút bên dưới để mở Đồng hồ đếm 15 giây. Hệ thống sẽ đếm lùi 3s chuẩn bị rồi đếm 15s. Nhập số nhịp đếm được để tự động tính BPM.</span>
+                  </div>
+                </div>
+
+                <!-- Thẻ nhập nhịp tim mạch cổ tay -->
+                <div class="pulse-input-card" id="estPulseCard">
+                  <div class="pulse-input-header">
+                    <span class="pulse-input-title" data-i18n="heartRateLabel">Nhịp tim (Bắt mạch)</span>
+                    <span class="v-status-badge status-ok" id="badgeEstHR">70 BPM (Bình thường)</span>
+                  </div>
+                  <div class="pulse-input-body">
+                    <div class="v-num-box">
+                      <span id="dispEstHR" class="v-num-val">70</span>
+                      <span class="v-unit">BPM</span>
+                    </div>
+                    <div class="v-stepper-btns">
+                      <button class="v-btn" onclick="stepEstHR(-1)" aria-label="Giảm nhịp tim">−</button>
+                      <button class="v-btn" onclick="stepEstHR(1)" aria-label="Tăng nhịp tim">+</button>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-open-15s-pulse" onclick="openTapModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span data-i18n="btnTapTimer15s">Đo nhịp tim 15 giây (Get Ready 3s)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div id="secNoDevice" class="est-drawer" style="display:none;">
-          <div class="est-group">
-            <div class="est-q" data-i18n="estQ1">1. Bạn cảm thấy thân nhiệt thế nào?</div>
-            <div class="est-pills-row">
-              <button class="est-pill" data-g="estTemp" data-v="normal" onclick="pickEst(this)" data-i18n="estTemp1">Bình thường, không sốt</button>
-              <button class="est-pill active" data-g="estTemp" data-v="fever_mild" onclick="pickEst(this)" data-i18n="estTemp2">Nóng nhẹ, hơi mệt</button>
-              <button class="est-pill" data-g="estTemp" data-v="fever_high" onclick="pickEst(this)" data-i18n="estTemp3">Nóng ran, ớn lạnh, vã mồ hôi</button>
+        <!-- Cột 2: Triệu chứng lâm sàng & Thời gian diễn tiến -->
+        <div class="dash-col">
+          <!-- 4. Lưới triệu chứng lâm sàng -->
+          <div class="section-card">
+            <div class="sec-header">
+              <span data-i18n="symptomsSecTitle">Dấu hiệu & Triệu chứng ghi nhận</span>
+              <span id="symSelectedCount" class="sym-count-badge" data-i18n="symCountZero">0 được chọn</span>
             </div>
+            <div id="symptomsGrid" class="symptoms-modern-grid"></div>
           </div>
 
-          <div class="est-group">
-            <div class="est-q" data-i18n="estQ2">2. Tình trạng hô hấp / nhịp thở?</div>
-            <div class="est-pills-row">
-              <button class="est-pill active" data-g="estBreathing" data-v="normal" onclick="pickEst(this)" data-i18n="estBreath1">Thở đều, bình thường</button>
-              <button class="est-pill" data-g="estBreathing" data-v="short_effort" onclick="pickEst(this)" data-i18n="estBreath2">Hụt hơi khi leo cầu thang</button>
-              <button class="est-pill" data-g="estBreathing" data-v="short_severe" onclick="pickEst(this)" data-i18n="estBreath3">Khó thở nhiều khi ngồi yên (Cấp tính)</button>
-            </div>
-          </div>
-
-          <!-- HƯỚNG DẪN ĐO MẠCH ĐẬP CỔ TAY (KHÔNG CÓ DỤNG CỤ ĐO) -->
-          <div class="pulse-guide-card">
-            <div class="pulse-guide-header">
+          <!-- 5. Thời gian kéo dài triệu chứng (Hệ số D) -->
+          <div class="duration-section-card">
+            <div class="dur-card-header">
               <div>
-                <div class="pulse-guide-title" data-i18n="pulseGuideTitle">Hướng dẫn đo mạch đập cổ tay (Bắt mạch quay)</div>
-                <div class="pulse-guide-sub" data-i18n="pulseGuideSub">Cách đo nhịp tim chuẩn y tế khi không có máy đo hoặc đồng hồ thông minh</div>
+                <div class="dur-title" data-i18n="durationTitle">Thời gian diễn tiến triệu chứng</div>
+                <div class="dur-hint">Hệ số diễn tiến D theo thời gian (D = 1 + (N-1)×0.3)</div>
               </div>
+              <div id="dispDays" class="dur-current-val">1 ngày</div>
             </div>
-            <div class="pulse-guide-steps">
-              <div class="pg-step">
-                <span class="pg-num">1</span>
-                <div class="pg-txt" data-i18n="pulseGuideStep1">Đặt 2 ngón tay (ngón trỏ và ngón giữa) lên mặt trong cổ tay, ngay phía dưới gốc ngón tay cái.</div>
-              </div>
-              <div class="pg-step">
-                <span class="pg-num">2</span>
-                <div class="pg-txt" data-i18n="pulseGuideStep2">Ấn nhẹ cho đến khi cảm nhận rõ từng nhịp đập rộn ràng (không dùng ngón cái vì ngón cái có mạch riêng).</div>
-              </div>
-              <div class="pg-step">
-                <span class="pg-num">3</span>
-                <div class="pg-txt" data-i18n="pulseGuideStep3">Đếm số nhịp trong 15 giây rồi nhân với 4 (ví dụ 18 nhịp × 4 = 72 BPM) hoặc đếm trọn 60 giây.</div>
-              </div>
-              <div class="pg-step">
-                <span class="pg-num">4</span>
-                <div class="pg-txt" data-i18n="pulseGuideStep4">Điền kết quả vào mục bên dưới hoặc bấm nút "Đo nhịp tim 15 giây" để AI tự động tính:</div>
-              </div>
+            <div class="dur-quick-row">
+              <button class="dur-chip active" onclick="setDays(1)">1 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(2)">2 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(3)">3 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(5)">5 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(7)">7 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(14)">14 <span data-i18n="daysSuffix">ngày</span></button>
             </div>
-
-            <!-- THẺ ĐIỀN CHỈ SỐ NHỊP TIM MẠCH CỔ TAY (THEO ĐÚNG MẪU ẢNH THIẾT KẾ) -->
-            <div class="pulse-input-card">
-              <div class="pulse-input-header">
-                <div class="pulse-input-name" data-i18n="heartRateLabel">Nhịp tim</div>
-                <span class="pulse-status-badge status-ok" id="badgeEstHR">70 BPM (Bình thường)</span>
-              </div>
-              <div class="pulse-input-body">
-                <div class="pulse-num-box">
-                  <input type="number" id="inpEstHR" class="pulse-num-input" value="70" min="40" max="220" onchange="setEstHR(this.value)" oninput="setEstHR(this.value)" aria-label="Nhập nhịp tim">
-                  <span class="pulse-unit">BPM</span>
-                </div>
-                <div class="pulse-stepper-btns">
-                  <button type="button" class="pulse-btn" onclick="stepEstHR(-1)" aria-label="Giảm nhịp tim">−</button>
-                  <button type="button" class="pulse-btn" onclick="stepEstHR(1)" aria-label="Tăng nhịp tim">+</button>
-                </div>
-              </div>
-              <button type="button" class="btn-pulse-15s" onclick="openTapModal()">
-                <span data-i18n="btnMeasure15s">Đo nhịp tim 15 giây</span>
-              </button>
-            </div>
-
-            <div class="pulse-guide-note" data-i18n="pulseGuideNormal">Chuẩn sinh lý bình thường lúc nghỉ ngơi: 60 – 99 BPM.</div>
           </div>
+
+          <!-- Nút Phân tích & Lưu chỉ số -->
+          <button class="btn-main" onclick="submitCheckin()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span data-i18n="btnSubmitCheckin">PHÂN TÍCH & LƯU CHỈ SỐ VÀO NHẬT KÝ</span>
+          </button>
         </div>
       </div>
-
-      <!-- 4. TRIỆU CHỨNG LÂM SÀNG (GỌN GÀNG, PHÂN NHÓM) -->
-      <div class="symptoms-section-card">
-        <div class="sym-sec-header">
-          <div>
-            <div class="sym-sec-title" data-i18n="symptomsSecTitle">Triệu chứng lâm sàng</div>
-            <div class="sym-sec-sub" data-i18n="symptomsSecHint">Chạm chọn các triệu chứng đang xuất hiện (nếu có)</div>
-          </div>
-          <span id="symCountBadge" class="sym-count-badge">0 đã chọn</span>
-        </div>
-        <div id="symptomsGrid" class="symptoms-modern-grid"></div>
-      </div>
-
-      <!-- 5. THỜI GIAN KÉO DÀI (CHỌN NHANH) -->
-      <div class="duration-section-card">
-        <div class="dur-card-header">
-          <div>
-            <div class="dur-title" data-i18n="durationTitle">Thời gian diễn tiến triệu chứng</div>
-            <div class="dur-hint">Hệ số diễn tiến D theo thời gian</div>
-          </div>
-          <div id="dispDays" class="dur-current-val">1 ngày</div>
-        </div>
-        <div class="dur-quick-row">
-          <button class="dur-chip active" onclick="setDays(1)">1 <span data-i18n="daysSuffix">ngày</span></button>
-          <button class="dur-chip" onclick="setDays(2)">2 <span data-i18n="daysSuffix">ngày</span></button>
-          <button class="dur-chip" onclick="setDays(3)">3 <span data-i18n="daysSuffix">ngày</span></button>
-          <button class="dur-chip" onclick="setDays(5)">5 <span data-i18n="daysSuffix">ngày</span></button>
-          <button class="dur-chip" onclick="setDays(7)">7+ <span data-i18n="daysSuffix">ngày</span></button>
-          <div class="dur-step-controls">
-            <button class="dur-btn" onclick="stepVal('days',-1)" aria-label="Giảm số ngày">−</button>
-            <button class="dur-btn" onclick="stepVal('days',1)" aria-label="Tăng số ngày">+</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- NÚT PHÂN TÍCH CHÍNH -->
-      <button class="btn-main pulse-cta" onclick="submitCheckin()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span data-i18n="btnAnalyze">PHÂN TÍCH & XEM KẾT QUẢ</span>
-      </button>
     </section>
 
-    <!-- ========== TRANG PHÂN TÍCH CHI TIẾT ========== -->
+    <!-- ========== 3. TRANG CHI TIẾT PHÂN TÍCH (DETAILS) ========== -->
     <section id="page_detail" class="page-section">
       <h2 class="page-title" data-i18n="detailTitle">Chi tiết phân tích logic</h2>
 
-      <div class="section-card">
-        <div class="sec-header"><span>Quy trình tính điểm nguy cơ (S)</span></div>
-        <div id="bk1" class="bk-step"></div>
-        <div id="bk2" class="bk-step"></div>
-        <div id="bk3" class="bk-step"></div>
-        <div id="bk4" class="bk-step last"></div>
+      <div class="dash-grid-2col">
+        <!-- Cột 1: Thước đo nguy cơ lâm sàng SVG & Khuyến cáo Triage -->
+        <div class="dash-col">
+          <div class="section-card">
+            <div class="sec-header"><span>Đánh giá mức độ rủi ro</span></div>
+            <div class="risk-gauge-container">
+              <svg class="risk-gauge-svg" viewBox="0 0 220 125">
+                <!-- Arc segments: Safe (Green), Warn (Yellow), Danger (Red) -->
+                <path d="M 20 110 A 90 90 0 0 1 70 32" fill="none" stroke="var(--ok)" stroke-width="16" stroke-linecap="round"></path>
+                <path d="M 75 28 A 90 90 0 0 1 145 28" fill="none" stroke="var(--warn)" stroke-width="16"></path>
+                <path d="M 150 32 A 90 90 0 0 1 200 110" fill="none" stroke="var(--danger)" stroke-width="16" stroke-linecap="round"></path>
+                <!-- Needle -->
+                <g id="riskGaugeNeedle" class="gauge-needle" style="transform: rotate(-90deg);">
+                  <polygon points="110,35 106,105 114,105" fill="var(--text)"></polygon>
+                  <circle cx="110" cy="105" r="7" fill="var(--text)"></circle>
+                  <circle cx="110" cy="105" r="3" fill="#ffffff"></circle>
+                </g>
+              </svg>
+              <div style="text-align:center;margin-top:0.45rem;">
+                <span id="detailRiskScore" class="hero-score" style="font-size:2.8rem;">0</span>
+                <span style="font-size:0.85rem;font-weight:700;color:var(--text-sub);">/ 100 điểm</span>
+              </div>
+              <div id="detailRiskBadge" class="hero-level-badge level-safe" style="margin-top:0.5rem;">
+                ỔN ĐỊNH
+              </div>
+            </div>
+          </div>
+
+          <!-- Khuyến cáo xử trí y tế -->
+          <div class="section-card">
+            <div class="sec-header"><span>Hướng dẫn xử trí y tế chuẩn</span></div>
+            <div id="detailTriageGuide" class="advice-block blue-left">
+              <strong>Khuyến nghị:</strong> Tiếp tục theo dõi sức khỏe tại nhà. Khi có dấu hiệu bất thường, mở ứng dụng và ghi nhận lại chỉ số.
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Quy trình tính điểm 4 bước -->
+        <div class="dash-col">
+          <div class="section-card">
+            <div class="sec-header"><span>Quy trình tính điểm nguy cơ (S)</span></div>
+            <div id="bk1" class="bk-step"></div>
+            <div id="bk2" class="bk-step"></div>
+            <div id="bk3" class="bk-step"></div>
+            <div id="bk4" class="bk-step last"></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ========== TRANG XU HƯỚNG & LỊCH SỬ ========== -->
+    <!-- ========== 4. TRANG XU HƯỚNG & LỊCH SỬ (TRENDS) ========== -->
     <section id="page_trends" class="page-section">
       <h2 class="page-title" data-i18n="trendsTitle">Xu hướng & Lịch sử</h2>
 
       <div class="section-card">
-        <div class="sec-header"><span data-i18n="chartTitle">Biểu đồ sinh hiệu 7 ngày</span></div>
-        <canvas id="trendChart" style="max-height:220px;width:100%;"></canvas>
+        <div class="chart-controls-row">
+          <span class="sec-header" style="margin:0;" data-i18n="chartTitle">Biểu đồ sinh hiệu 7 ngày</span>
+          <div class="chart-filter-chips">
+            <button class="c-filter-chip active" onclick="filterChartMetric('all')">Tất cả</button>
+            <button class="c-filter-chip" onclick="filterChartMetric('score')">Điểm nguy cơ</button>
+            <button class="c-filter-chip" onclick="filterChartMetric('hr')">Nhịp tim</button>
+            <button class="c-filter-chip" onclick="filterChartMetric('spo2')">SpO2</button>
+          </div>
+        </div>
+        <div style="position:relative;height:240px;width:100%;">
+          <canvas id="trendChart"></canvas>
+        </div>
       </div>
 
       <div class="section-card">
@@ -505,12 +693,12 @@
       </div>
     </section>
 
-    <!-- ========== TRANG BÁO CÁO PDF ========== -->
+    <!-- ========== 5. TRANG BÁO CÁO Y TẾ (REPORT) ========== -->
     <section id="page_report" class="page-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.15rem;flex-wrap:wrap;gap:0.6rem;">
         <h2 class="page-title" style="margin:0;" data-i18n="reportPageTitle">Báo cáo y tế</h2>
         <button class="btn-small" onclick="window.print()" data-i18n="btnPrintReport">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           In / Lưu PDF
         </button>
       </div>
@@ -519,7 +707,7 @@
 
   </main>
 
-  <!-- ===== THANH ĐIỀU HƯỚNG DƯỚI ===== -->
+  <!-- ===== THANH ĐIỀU HƯỚNG DƯỚI (MOBILE BOTTOM DOCK) ===== -->
   <nav class="bottom-bar no-print">
     <button class="nav-item active" data-page="home" onclick="switchTab('home')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -534,16 +722,16 @@
       <span data-i18n="navDetail">Chi tiết</span>
     </button>
     <button class="nav-item" data-page="trends" onclick="switchTab('trends')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       <span data-i18n="navTrends">Xu hướng</span>
     </button>
     <button class="nav-item" data-page="report" onclick="switchTab('report')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
       <span data-i18n="navReport">Báo cáo</span>
     </button>
   </nav>
 
-  <!-- ===== MODAL ĐO NHỊP TIM 15 GIÂY (BẮT MẠCH CỔ TAY) ===== -->
+  <!-- ===== MODAL: ĐO NHỊP TIM 15 GIÂY (CLINICAL GRADE) ===== -->
   <div id="modalTap" class="modal-bg" style="display:none;">
     <div class="modal-box tap-modal-box">
       <button class="modal-close" onclick="PulseMeter.closeModal()">&times;</button>
@@ -606,49 +794,37 @@
             <span id="btnPauseText">⏸️ Tạm dừng</span>
           </button>
           <button type="button" class="btn-timer-action action-reset" onclick="PulseMeter.reset()">
-            🔄 Đặt lại
+            🔄 <span data-i18n="tapBtnReset">Đặt lại</span>
           </button>
         </div>
       </div>
 
-      <!-- Khung nhập kết quả khi đếm xong 15 giây -->
-      <div id="tapResultCard" class="tap-result-card" style="display:none;">
-        <div class="tap-res-badge">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-          <span data-i18n="tapStatusDone">Đã hết 15 giây! Nhập số nhịp bạn đếm được:</span>
-        </div>
-
-        <div class="tap-calc-box">
-          <div class="tap-calc-input-wrap">
-            <span class="tap-input-label" data-i18n="tapBeatsLabel">Số nhịp đếm trong 15s:</span>
-            <div class="tap-stepper-row">
-              <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(-1)">−</button>
-              <input type="number" id="inpCountedBeats" class="inp-counted-beats" value="18" min="5" max="60" oninput="PulseMeter.onBeatsChange(this.value)">
-              <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(1)">+</button>
-            </div>
-          </div>
-          <div class="tap-formula-tag">
-            <span id="tapFormulaDisplay">18 nhịp × 4 = 72 BPM</span>
+      <!-- Khu vực nhập số nhịp đếm được để tự động nhân 4 -->
+      <div class="tap-calc-container" id="tapCalcContainer">
+        <div class="tap-calc-title" data-i18n="tapCalcTitle">Nhập số nhịp bạn đếm được trong 15 giây:</div>
+        <div class="tap-calc-controls">
+          <div class="tap-stepper-row">
+            <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(-1)">−</button>
+            <input type="number" id="inpCountedBeats" class="inp-counted-beats" value="18" min="5" max="60" oninput="PulseMeter.onBeatsChange(this.value)">
+            <button type="button" class="tap-calc-btn" onclick="PulseMeter.stepBeats(1)">+</button>
           </div>
         </div>
-
-        <button type="button" class="btn-apply-pulse" onclick="PulseMeter.applyAndClose()">
-          ✓ <span data-i18n="tapBtnApply">Lưu kết quả & Đóng</span>
-        </button>
+        <div class="tap-formula-tag">
+          <span id="tapFormulaDisplay">18 nhịp × 4 = 72 BPM</span>
+        </div>
       </div>
 
-      <!-- Nút phụ bên dưới (khi hoàn thành có thể bấm Đếm lại hoặc Đóng) -->
-      <div class="tap-actions-row">
-        <button type="button" id="btnTapRetest" class="btn-tap-secondary" onclick="PulseMeter.startNew()" style="display:none;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          <span data-i18n="tapBtnRetest">Đếm lại (15s)</span>
+      <!-- Footer Buttons -->
+      <div class="tap-modal-footer">
+        <button type="button" id="btnApplyTapCount" class="btn-tap-primary" onclick="PulseMeter.applyCountedResult()">
+          ✓ <span data-i18n="tapBtnApplyResult">Áp dụng kết quả (<span id="calcBpmResult">72</span> BPM)</span>
         </button>
-        <button type="button" id="btnTapClose" class="btn-tap-secondary" onclick="PulseMeter.closeModal()" data-i18n="tapBtnClose">Đóng</button>
+        <button type="button" class="btn-tap-secondary" onclick="PulseMeter.closeModal()" data-i18n="btnClose">Đóng</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== MODAL CẤP CỨU 115 ===== -->
+  <!-- ===== MODAL: CẤP CỨU Y TẾ KHẨN CẤP (SOS 115) ===== -->
   <div id="modalSOS" class="modal-bg">
     <div class="modal-box sos-theme">
       <button class="modal-close" onclick="closeSOS()">&times;</button>
@@ -683,9 +859,10 @@
   <iframe id="hpVoiceFrame" referrerpolicy="no-referrer" style="display:none;" src="about:blank"></iframe>
   <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
-  <script src="js/translations.js?v=20261113_5"></script>
-  <script src="js/audio.js?v=20261113_5"></script>
-  <script src="js/algorithm.js?v=20261113_5"></script>
-  <script src="js/app.js?v=20261113_5"></script>
+  <!-- Scripts với query string cache-buster -->
+  <script src="js/translations.js?v=20261113_7"></script>
+  <script src="js/audio.js?v=20261113_7"></script>
+  <script src="js/algorithm.js?v=20261113_7"></script>
+  <script src="js/app.js?v=20261113_7"></script>
 </body>
 </html>

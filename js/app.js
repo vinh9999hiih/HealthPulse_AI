@@ -22,6 +22,50 @@ const S = {
   history: []
 };
 
+
+/* ===== TOAST NOTIFICATION SYSTEM ===== */
+function showToast(message, type = 'info', duration = 2800) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast-msg toast-${type}`;
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else if (type === 'error' || type === 'danger') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  } else if (type === 'warning') {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  } else {
+    iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  }
+  toast.innerHTML = `<span style="display:flex;align-items:center;flex-shrink:0;">${iconSvg}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => {
+      try { toast.remove(); } catch(e) {}
+    }, 250);
+  }, duration);
+}
+window.showToast = showToast;
+
+/* ===== DAILY CARE PLAN CHECKLIST ===== */
+function toggleCareItem(el) {
+  if (!el) return;
+  el.classList.toggle('done');
+  try {
+    HealthAudio?.playTick?.(750);
+  } catch(e) {}
+}
+window.toggleCareItem = toggleCareItem;
+
+function resetDailyPlan() {
+  document.querySelectorAll('.care-item').forEach(item => item.classList.remove('done'));
+  showToast(currentLang === 'en' ? 'Daily care plan reset' : 'Đã đặt lại kế hoạch chăm sóc trong ngày', 'info');
+}
+window.resetDailyPlan = resetDailyPlan;
+
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   loadStorage();
@@ -35,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initChart();
 
   document.getElementById('btnSOS')?.addEventListener('click', openSOS);
+  document.getElementById('btnHeaderSOS')?.addEventListener('click', openSOS);
   document.getElementById('btnVoice')?.addEventListener('click', readVoice);
 
   if ('speechSynthesis' in window) {
@@ -317,6 +362,7 @@ function toggleEstMode() {
   S.estimated = !S.estimated;
   updateEstModeUI();
   analyze();
+  showToast(S.estimated ? (getTranslation('toastEstModeOn') || 'Đã bật Chế độ ước lượng lâm sàng') : (getTranslation('toastEstModeOff') || 'Đã chuyển sang chế độ Nhập chỉ số trực tiếp'), 'info');
 }
 
 function pickEst(btn) {
@@ -531,7 +577,12 @@ const PulseMeter = {
     analyze();
 
     try { HealthAudio?.playBeepSuccess?.(); } catch(e) {}
+    showToast((getTranslation('toastPulseApplied') || 'Đã cập nhật nhịp tim vào hồ sơ') + `: ${finalBpm} BPM`, 'success');
     this.closeModal();
+  },
+
+  applyCountedResult() {
+    this.applyAndClose();
   },
 
   updateCountdownDisplay() {
@@ -757,6 +808,43 @@ function analyze() {
     levelBadge.textContent = getTranslation(levelKey);
     heroScore.textContent = r.score;
     heroMsg.textContent = r.alertMessage;
+
+    // Cập nhật vòng tròn điểm SVG trên Home
+    const heroCircle = document.getElementById('heroScoreCircle');
+    if (heroCircle) {
+      const circumference = 2 * Math.PI * 42; // 263.89
+      const progress = Math.min(Math.max(r.score, 0), 100) / 100;
+      heroCircle.style.strokeDashoffset = circumference - (progress * circumference);
+      heroCircle.style.stroke = r.level === 'red' ? 'var(--danger)' : r.level === 'yellow' ? 'var(--warn)' : 'var(--ok)';
+    }
+
+    // Cập nhật thước đo Gauge trên trang Chi tiết
+    const needle = document.getElementById('riskGaugeNeedle');
+    if (needle) {
+      const angle = (Math.min(Math.max(r.score, 0), 100) / 100) * 180 - 90;
+      needle.style.transform = `rotate(${angle}deg)`;
+    }
+    const dScore = document.getElementById('detailRiskScore');
+    if (dScore) dScore.textContent = r.score;
+    const dBadge = document.getElementById('detailRiskBadge');
+    if (dBadge) {
+      const levelKey = r.level === 'red' ? 'heroStatusDanger' : r.level === 'yellow' ? 'heroStatusWarning' : 'heroStatusSafe';
+      dBadge.textContent = getTranslation(levelKey);
+      dBadge.className = `hero-level-badge level-${r.level === 'red' ? 'danger' : r.level === 'yellow' ? 'warn' : 'safe'}`;
+    }
+    const dTriage = document.getElementById('detailTriageGuide');
+    if (dTriage) {
+      if (r.level === 'red') {
+        dTriage.className = 'advice-block danger-left';
+        dTriage.innerHTML = `<strong>${getTranslation('statusDanger') || 'Khẩn cấp'}:</strong> ${r.alertMessage} Cần liên hệ hỗ trợ y tế hoặc gọi 115 ngay lập tức!`;
+      } else if (r.level === 'yellow') {
+        dTriage.className = 'advice-block warn-left';
+        dTriage.innerHTML = `<strong>${getTranslation('statusWarning') || 'Cần chú ý'}:</strong> ${r.alertMessage} Nên đến cơ sở y tế thăm khám trong vòng 24 giờ.`;
+      } else {
+        dTriage.className = 'advice-block green-left';
+        dTriage.innerHTML = `<strong>${getTranslation('statusSafe') || 'Ổn định'}:</strong> Các chỉ số nằm trong giới hạn an toàn. Tiếp tục duy trì chế độ sinh hoạt và theo dõi định kỳ.`;
+      }
+    }
   }
 
   // 4 Thẻ sinh hiệu trên Home (đa ngôn ngữ chuẩn y khoa)
@@ -864,6 +952,8 @@ function submitCheckin() {
   });
   saveHistory();
 
+  showToast(getTranslation('toastCheckinSuccess') || 'Đã ghi nhận chỉ số sinh hiệu thành công!', 'success');
+
   // Chuyển sang trang Tổng quan
   switchTab('home');
 }
@@ -872,6 +962,7 @@ function submitCheckin() {
 function switchTab(tabId) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active-page'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.desktop-nav-item').forEach(b => b.classList.remove('active'));
   stopVoice();
 
   const sec = document.getElementById('page_' + tabId);
@@ -879,6 +970,9 @@ function switchTab(tabId) {
 
   const btn = document.querySelector(`.nav-item[data-page="${tabId}"]`);
   if (btn) btn.classList.add('active');
+
+  const deskBtn = document.querySelector(`.desktop-nav-item[data-page="${tabId}"]`);
+  if (deskBtn) deskBtn.classList.add('active');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1263,10 +1357,15 @@ function initToggles() {
       document.documentElement.removeAttribute('data-theme');
       document.getElementById('btnDarkMode').classList.remove('on');
       localStorage.setItem('hp_dark', '0');
+      showToast(getTranslation('toastThemeLight') || 'Đã bật Giao diện Sáng', 'info');
     } else {
       document.documentElement.setAttribute('data-theme', 'dark');
       document.getElementById('btnDarkMode').classList.add('on');
       localStorage.setItem('hp_dark', '1');
+      showToast(getTranslation('toastThemeDark') || 'Đã bật Giao diện Tối', 'info');
+    }
+    if (typeof updateChartData === 'function') {
+      updateChartData();
     }
   });
 
@@ -1284,13 +1383,96 @@ function initToggles() {
   });
 }
 
-/* ===== TRENDS CHART ===== */
+/* ===== TRENDS CHART & METRIC FILTER ===== */
 let trendChart = null;
+let currentMetricFilter = 'all';
+
+function filterChartMetric(metric) {
+  currentMetricFilter = metric;
+  document.querySelectorAll('.c-filter-chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('onclick')?.includes(metric));
+  });
+  updateChartData();
+}
+window.filterChartMetric = filterChartMetric;
+
+function updateChartData() {
+  if (!trendChart) return;
+  const labels = S.history.length >= 2
+    ? S.history.slice(-7).map(h => h.date.split(' ')[0] || h.date)
+    : ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'Hôm nay'];
+
+  let datasets = [];
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+
+  if (currentMetricFilter === 'all' || currentMetricFilter === 'score') {
+    const scores = S.history.length >= 2
+      ? S.history.slice(-7).map(h => h.score)
+      : [0, 8, 14, 22, 28, 31, S.result ? S.result.score : 0];
+    datasets.push({
+      label: 'Điểm nguy cơ (S)',
+      data: scores,
+      borderColor: '#0284c7',
+      backgroundColor: 'rgba(2, 132, 199, 0.12)',
+      fill: true,
+      tension: 0.35,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#0284c7',
+      pointRadius: 4,
+      pointHoverRadius: 6
+    });
+  }
+
+  if (currentMetricFilter === 'all' || currentMetricFilter === 'hr') {
+    const hrs = S.history.length >= 2
+      ? S.history.slice(-7).map(h => h.hr)
+      : [72, 74, 76, 75, 78, 80, S.hr || 75];
+    datasets.push({
+      label: 'Nhịp tim (BPM)',
+      data: hrs,
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+      fill: false,
+      tension: 0.35,
+      borderWidth: 2,
+      pointBackgroundColor: '#ef4444',
+      pointRadius: 3
+    });
+  }
+
+  if (currentMetricFilter === 'all' || currentMetricFilter === 'spo2') {
+    const spo2s = S.history.length >= 2
+      ? S.history.slice(-7).map(h => h.spo2)
+      : [98, 98, 97, 98, 99, 98, S.spo2 || 98];
+    datasets.push({
+      label: 'SpO2 (%)',
+      data: spo2s,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+      fill: false,
+      tension: 0.35,
+      borderWidth: 2,
+      pointBackgroundColor: '#10b981',
+      pointRadius: 3
+    });
+  }
+
+  trendChart.data.labels = labels;
+  trendChart.data.datasets = datasets;
+  if (trendChart.options?.scales?.y?.grid) {
+    trendChart.options.scales.y.grid.color = gridColor;
+  }
+  trendChart.update();
+}
+
 function initChart() {
   const ctx = document.getElementById('trendChart')?.getContext('2d');
   if (!ctx || typeof Chart === 'undefined') return;
 
-  const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+  const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'Hôm nay'];
   const scores = [0, 8, 14, 22, 28, 31, S.result ? S.result.score : 0];
 
   trendChart = new Chart(ctx, {
@@ -1300,21 +1482,39 @@ function initChart() {
       datasets: [{
         label: 'Điểm nguy cơ (S)',
         data: scores,
-        borderColor: '#0d9488',
-        backgroundColor: 'rgba(13, 148, 136, 0.12)',
+        borderColor: '#0284c7',
+        backgroundColor: 'rgba(2, 132, 199, 0.12)',
         fill: true,
         tension: 0.35,
         borderWidth: 2.5,
-        pointBackgroundColor: '#0d9488'
+        pointBackgroundColor: '#0284c7',
+        pointRadius: 4,
+        pointHoverRadius: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          padding: 10,
+          cornerRadius: 8,
+          titleFont: { family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { family: "'JetBrains Mono', monospace" }
+        }
+      },
       scales: {
-        y: { min: 0, max: 100, grid: { color: 'rgba(148, 163, 184, 0.15)' } },
-        x: { grid: { display: false } }
+        y: {
+          min: 0,
+          max: 100,
+          grid: { color: gridColor },
+          ticks: { font: { family: "'JetBrains Mono', monospace" } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: "'Plus Jakarta Sans', sans-serif" } }
+        }
       }
     }
   });
@@ -1324,20 +1524,33 @@ function renderTrends() {
   const list = document.getElementById('historyList');
   if (!list) return;
   if (S.history.length === 0) {
-    list.innerHTML = `<p style="font-size:0.85rem;color:var(--text-sub);padding:.5rem 0;">${getTranslation('noHistoryYet')}</p>`;
+    list.innerHTML = `
+      <div class="empty-state-box">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <div class="empty-state-title">${getTranslation('noHistoryYet') || 'Chưa có nhật ký đo gần đây'}</div>
+        <div class="empty-state-desc">Hãy vào trang "Đo lường" để ghi nhận và theo dõi diễn tiến sinh hiệu.</div>
+      </div>
+    `;
     return;
   }
-  list.innerHTML = S.history.slice(-10).reverse().map(item => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border);">
-      <div>
-        <div style="font-weight:700;font-size:0.88rem;">${item.date}</div>
-        <div style="font-size:0.75rem;color:var(--text-sub);">T: ${item.temp}°C • SpO2: ${item.spo2}% • HR: ${item.hr} BPM</div>
+  list.innerHTML = S.history.slice(-10).reverse().map(item => {
+    const levelColor = item.level === 'red' ? 'var(--danger)' : item.level === 'yellow' ? 'var(--warn)' : 'var(--ok)';
+    return `
+      <div class="history-card-item">
+        <div>
+          <div class="hist-time">${item.date}</div>
+          <div style="font-size:0.78rem;color:var(--text-sub);margin-top:2px;">
+            Nhiệt độ: <b>${item.temp}°C</b> • SpO2: <b>${item.spo2}%</b> • Mạch: <b>${item.hr} BPM</b>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:1.15rem;font-weight:900;font-family:var(--mono);color:${levelColor};">S = ${item.score}</span>
+        </div>
       </div>
-      <div style="text-align:right;">
-        <span style="font-weight:800;font-family:var(--mono);color:${item.level==='red'?'#dc2626':item.level==='yellow'?'#d97706':'#059669'};">S = ${item.score}</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function clearHistory() {
