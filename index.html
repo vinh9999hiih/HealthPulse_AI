@@ -570,7 +570,7 @@
           <div class="tap-clock-center">
             <div class="tap-clock-digits-wrap">
               <span id="tapClockBig" class="tap-clock-digits">15.0</span>
-              <span class="tap-clock-unit">s</span>
+              <span id="tapClockUnit" class="tap-clock-unit">s</span>
             </div>
             <span id="tapClockSub" class="tap-clock-sub">15 GIÂY</span>
           </div>
@@ -589,6 +589,16 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           <span data-i18n="tapBtnStart">Bắt đầu đếm ngược (15s)</span>
         </button>
+
+        <!-- Nút khi đang ở chế độ Chuẩn bị (3s) -->
+        <div id="timerPrepControls" class="timer-running-row" style="display:none;">
+          <button type="button" class="btn-timer-action action-skip" onclick="PulseMeter.skipPrep()">
+            ⚡ <span data-i18n="tapBtnSkipPrep">Đếm ngay</span>
+          </button>
+          <button type="button" class="btn-timer-action action-reset" onclick="PulseMeter.reset()">
+            🔄 <span data-i18n="tapBtnReset">Hủy</span>
+          </button>
+        </div>
 
         <!-- Nút khi đang chạy: Tạm dừng / Hủy -->
         <div id="timerRunningControls" class="timer-running-row" style="display:none;">

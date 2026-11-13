@@ -332,9 +332,12 @@ function pickEst(btn) {
 const PulseMeter = {
   duration: 15,          // 15 giây chuẩn lâm sàng
   secondsLeft: 15,
+  prepDuration: 3,       // 3 giây đếm lùi chuẩn bị đặt tay
+  prepLeft: 3,
   countedBeats: 18,      // Mặc định 18 nhịp (18 × 4 = 72 BPM)
-  state: 'idle',         // 'idle' | 'running' | 'paused' | 'done'
+  state: 'idle',         // 'idle' | 'prep' | 'running' | 'paused' | 'done'
   intervalId: null,
+  prepTimerId: null,
   endTime: null,
   pausedRemainingMs: 15000,
   CIRCUMFERENCE: 502.65, // 2 * PI * 80
@@ -370,18 +373,75 @@ const PulseMeter = {
     this.stopTimer();
     this.state = 'idle';
     this.secondsLeft = this.duration;
+    this.prepLeft = this.prepDuration;
     this.pausedRemainingMs = this.duration * 1000;
     this.renderUI();
     this.updateCountdownDisplay();
   },
 
   start() {
-    if (this.state === 'running') return;
+    if (this.state === 'running' || this.state === 'prep') return;
     try { HealthAudio?.init?.(); } catch(e) {}
 
-    const remainingMs = this.state === 'paused' ? this.pausedRemainingMs : this.duration * 1000;
-    this.endTime = performance.now() + remainingMs;
+    // Nếu đang tạm dừng thì tiếp tục đếm 15s mà không cần đếm lại 3s chuẩn bị
+    if (this.state === 'paused') {
+      this.resumeRun();
+      return;
+    }
+
+    // Đếm ngược 3 giây chuẩn bị (3... 2... 1...) để kịp đặt tay lên cổ tay
+    this.startPrep();
+  },
+
+  startPrep() {
+    this.stopTimer();
+    this.state = 'prep';
+    this.prepLeft = this.prepDuration;
+    this.renderUI();
+
+    try { HealthAudio?.playTick?.(600); } catch(e) {}
+
+    this.prepTimerId = setInterval(() => {
+      this.prepLeft--;
+      if (this.prepLeft > 0) {
+        const freq = this.prepLeft === 1 ? 750 : 600;
+        try { HealthAudio?.playTick?.(freq); } catch(e) {}
+        this.renderUI();
+      } else {
+        // Hết 3 giây chuẩn bị -> Bắt đầu đếm 15 giây!
+        this.stopTimer();
+        this.startRun();
+      }
+    }, 1000);
+  },
+
+  skipPrep() {
+    this.stopTimer();
+    this.startRun();
+  },
+
+  startRun() {
     this.state = 'running';
+    this.secondsLeft = this.duration;
+    this.endTime = performance.now() + this.duration * 1000;
+    try { HealthAudio?.playTick?.(1050); } catch(e) {}
+    this.renderUI();
+
+    this.stopTimer();
+    this.intervalId = setInterval(() => {
+      const msLeft = this.endTime - performance.now();
+      this.secondsLeft = Math.max(0, msLeft / 1000);
+      this.updateCountdownDisplay();
+
+      if (this.secondsLeft <= 0) {
+        this.finish();
+      }
+    }, 40);
+  },
+
+  resumeRun() {
+    this.state = 'running';
+    this.endTime = performance.now() + this.pausedRemainingMs;
     this.renderUI();
 
     this.stopTimer();
@@ -405,7 +465,7 @@ const PulseMeter = {
       this.renderUI();
       this.updateCountdownDisplay();
     } else if (this.state === 'paused') {
-      this.start();
+      this.resumeRun();
     }
   },
 
@@ -413,6 +473,10 @@ const PulseMeter = {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this.prepTimerId) {
+      clearInterval(this.prepTimerId);
+      this.prepTimerId = null;
     }
   },
 
@@ -474,11 +538,32 @@ const PulseMeter = {
     const clock = document.getElementById('tapClockBig');
     const ring = document.getElementById('tapRingProgress');
     const bar = document.getElementById('tapProgressBar');
+    const clockUnit = document.getElementById('tapClockUnit');
+
+    if (this.state === 'prep') {
+      if (clock) {
+        clock.textContent = `${this.prepLeft}`;
+        clock.className = 'tap-clock-digits prep-digits';
+      }
+      if (clockUnit) clockUnit.style.display = 'none';
+      if (ring) {
+        const prepFraction = (3 - this.prepLeft) / 3;
+        ring.style.strokeDashoffset = prepFraction * this.CIRCUMFERENCE;
+        ring.style.stroke = '#f59e0b';
+      }
+      if (bar) bar.style.width = `${((3 - this.prepLeft) / 3 * 100).toFixed(0)}%`;
+      return;
+    }
+
+    if (clockUnit) clockUnit.style.display = 'inline';
+    if (clock) {
+      clock.textContent = this.secondsLeft.toFixed(1);
+      clock.className = 'tap-clock-digits';
+    }
 
     const progressFraction = Math.max(0, Math.min(1, (this.duration - this.secondsLeft) / this.duration)); // 0 -> 1
     const offset = progressFraction * this.CIRCUMFERENCE;
 
-    if (clock) clock.textContent = this.secondsLeft.toFixed(1);
     if (ring) {
       ring.style.strokeDashoffset = offset;
       ring.style.stroke = this.state === 'done' ? '#10b981' : 'var(--secondary)';
@@ -491,6 +576,7 @@ const PulseMeter = {
     const badgeText = document.getElementById('tapStatusBadge');
     const clockSub = document.getElementById('tapClockSub');
     const btnStart = document.getElementById('btnTimerStart');
+    const prepControls = document.getElementById('timerPrepControls');
     const runningControls = document.getElementById('timerRunningControls');
     const btnPauseText = document.getElementById('btnPauseText');
     const resultCard = document.getElementById('tapResultCard');
@@ -504,6 +590,20 @@ const PulseMeter = {
         clockSub.className = 'tap-clock-sub';
       }
       if (btnStart) btnStart.style.display = 'flex';
+      if (prepControls) prepControls.style.display = 'none';
+      if (runningControls) runningControls.style.display = 'none';
+      if (resultCard) resultCard.style.display = 'none';
+      if (btnRetest) btnRetest.style.display = 'none';
+      this.updateCountdownDisplay();
+    } else if (this.state === 'prep') {
+      if (badge) badge.className = 'tap-header-badge prep';
+      if (badgeText) badgeText.textContent = getTranslation('tapStatusPrep') || 'Chuẩn bị: Đặt 2 ngón tay lên cổ tay... (3s)';
+      if (clockSub) {
+        clockSub.textContent = 'ĐẶT TAY LÊN CỔ TAY...';
+        clockSub.className = 'tap-clock-sub prep-anim';
+      }
+      if (btnStart) btnStart.style.display = 'none';
+      if (prepControls) prepControls.style.display = 'flex';
       if (runningControls) runningControls.style.display = 'none';
       if (resultCard) resultCard.style.display = 'none';
       if (btnRetest) btnRetest.style.display = 'none';
@@ -512,14 +612,16 @@ const PulseMeter = {
       if (badge) badge.className = 'tap-header-badge measuring';
       if (badgeText) badgeText.textContent = getTranslation('tapStatusRunning') || 'Đang đếm ngược 15 giây… Hãy đếm số nhịp đập trong đầu!';
       if (clockSub) {
-        clockSub.textContent = 'ĐANG ĐẾM…';
+        clockSub.textContent = 'ĐANG ĐẾM NHỊP…';
         clockSub.className = 'tap-clock-sub pulse-anim';
       }
       if (btnStart) btnStart.style.display = 'none';
+      if (prepControls) prepControls.style.display = 'none';
       if (runningControls) runningControls.style.display = 'flex';
       if (btnPauseText) btnPauseText.textContent = getTranslation('tapBtnPause') || '⏸️ Tạm dừng';
       if (resultCard) resultCard.style.display = 'none';
       if (btnRetest) btnRetest.style.display = 'none';
+      this.updateCountdownDisplay();
     } else if (this.state === 'paused') {
       if (badge) badge.className = 'tap-header-badge';
       if (badgeText) badgeText.textContent = getTranslation('tapStatusPaused') || 'Đang tạm dừng đếm ngược';
@@ -528,10 +630,12 @@ const PulseMeter = {
         clockSub.className = 'tap-clock-sub';
       }
       if (btnStart) btnStart.style.display = 'none';
+      if (prepControls) prepControls.style.display = 'none';
       if (runningControls) runningControls.style.display = 'flex';
       if (btnPauseText) btnPauseText.textContent = getTranslation('tapBtnResume') || '▶️ Tiếp tục';
       if (resultCard) resultCard.style.display = 'none';
       if (btnRetest) btnRetest.style.display = 'none';
+      this.updateCountdownDisplay();
     } else if (this.state === 'done') {
       if (badge) badge.className = 'tap-header-badge done';
       if (badgeText) badgeText.textContent = getTranslation('tapStatusDone') || 'Đã hết 15 giây! Nhập số nhịp bạn đếm được:';
@@ -540,9 +644,11 @@ const PulseMeter = {
         clockSub.className = 'tap-clock-sub done';
       }
       if (btnStart) btnStart.style.display = 'none';
+      if (prepControls) prepControls.style.display = 'none';
       if (runningControls) runningControls.style.display = 'none';
       if (resultCard) resultCard.style.display = 'block';
       if (btnRetest) btnRetest.style.display = 'inline-flex';
+      this.updateCountdownDisplay();
     }
   }
 };

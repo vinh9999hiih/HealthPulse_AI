@@ -30,6 +30,25 @@ const HealthAudio = {
     return this.isMuted;
   },
 
+  // Tiếng tick đếm ngược chuẩn bị 3, 2, 1
+  playTick(freq = 600) {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.09);
+    } catch(e) {}
+  },
+
   // Tiếng chimes nhẹ nhàng khi An Toàn (Mức Xanh)
   playSafeChime() {
     if (this.isMuted) return;
