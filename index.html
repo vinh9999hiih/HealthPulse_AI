@@ -8,7 +8,7 @@
   <meta name="description" content="HealthPulse AI - Ứng dụng theo dõi sức khỏe y tế cá nhân, phân tích chỉ số sinh hiệu và cảnh báo sớm nguy cơ bất ổn lâm sàng chuẩn A4.">
   <link rel="icon" type="image/png" href="assets/logo_white_bg.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="css/style.css?v=20261113_10">
+  <link rel="stylesheet" href="css/style.css?v=20261114_1">
 </head>
 <body>
 
@@ -591,18 +591,26 @@
           <!-- 5. Thời gian kéo dài triệu chứng (Hệ số D) -->
           <div class="duration-section-card">
             <div class="dur-card-header">
-              <div>
+              <div class="dur-card-info">
                 <div class="dur-title" data-i18n="durationTitle">Thời gian diễn tiến triệu chứng</div>
                 <div class="dur-hint">Hệ số diễn tiến D theo thời gian (D = 1 + (N-1)×0.3)</div>
               </div>
-              <div id="dispDays" class="dur-current-val">1 ngày</div>
+              <div class="dur-stepper-wrap">
+                <div id="dispDays" class="dur-current-val">1 ngày</div>
+                <div class="dur-stepper-btns">
+                  <button type="button" class="dur-step-btn" onclick="stepVal('days',-1)" aria-label="Giảm số ngày">−</button>
+                  <button type="button" class="dur-step-btn" onclick="stepVal('days',1)" aria-label="Tăng số ngày">+</button>
+                </div>
+              </div>
             </div>
             <div class="dur-quick-row">
               <button class="dur-chip active" onclick="setDays(1)">1 <span data-i18n="daysSuffix">ngày</span></button>
               <button class="dur-chip" onclick="setDays(2)">2 <span data-i18n="daysSuffix">ngày</span></button>
               <button class="dur-chip" onclick="setDays(3)">3 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(4)">4 <span data-i18n="daysSuffix">ngày</span></button>
               <button class="dur-chip" onclick="setDays(5)">5 <span data-i18n="daysSuffix">ngày</span></button>
               <button class="dur-chip" onclick="setDays(7)">7 <span data-i18n="daysSuffix">ngày</span></button>
+              <button class="dur-chip" onclick="setDays(10)">10 <span data-i18n="daysSuffix">ngày</span></button>
               <button class="dur-chip" onclick="setDays(14)">14 <span data-i18n="daysSuffix">ngày</span></button>
             </div>
           </div>
@@ -865,9 +873,9 @@
   <audio id="hpVoiceAudio" referrerpolicy="no-referrer" preload="none" style="display:none;"></audio>
 
   <!-- Scripts với query string cache-buster -->
-  <script src="js/translations.js?v=20261113_10"></script>
-  <script src="js/audio.js?v=20261113_10"></script>
-  <script src="js/algorithm.js?v=20261113_10"></script>
-  <script src="js/app.js?v=20261113_10"></script>
+  <script src="js/translations.js?v=20261114_1"></script>
+  <script src="js/audio.js?v=20261114_1"></script>
+  <script src="js/algorithm.js?v=20261114_1"></script>
+  <script src="js/app.js?v=20261114_1"></script>
 </body>
 </html>

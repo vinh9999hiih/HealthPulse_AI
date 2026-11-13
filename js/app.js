@@ -213,7 +213,7 @@ function setDays(n) {
 function updateDurationChips() {
   document.querySelectorAll('.dur-chip').forEach(c => {
     const num = parseInt(c.textContent);
-    c.classList.toggle('active', num === S.days || (num === 7 && S.days >= 7));
+    c.classList.toggle('active', num === S.days);
   });
 }
 
