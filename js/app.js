@@ -1672,10 +1672,10 @@ function renderReport() {
         <table class="rep-table">
           <thead>
             <tr>
-              <th style="width:26%;">${getTranslation('colMetric')}</th>
-              <th style="width:22%;">${getTranslation('colValue')}</th>
-              <th style="width:24%;">${getTranslation('colNormal')}</th>
-              <th style="width:28%;text-align:right;">${getTranslation('colStatus')}</th>
+              <th style="width:29%;">${getTranslation('colMetric')}</th>
+              <th style="width:21%;">${getTranslation('colValue')}</th>
+              <th style="width:25%;">${getTranslation('colNormal')}</th>
+              <th style="width:25%;text-align:right;">${getTranslation('colStatus')}</th>
             </tr>
           </thead>
           <tbody>
